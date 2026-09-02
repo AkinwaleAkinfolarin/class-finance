@@ -24,6 +24,8 @@ import uuid
 app = Flask(__name__)
 initialize_database()
 
+from import_students import import_students
+import_students()
 # =========================================================
 # PHASE 4 — OCR RECEIPT READER
 # =========================================================
