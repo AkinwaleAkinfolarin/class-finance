@@ -8,7 +8,7 @@ from flask import (
 )
 
 from werkzeug.utils import secure_filename
-from database import get_connection
+from database import get_connection, initialize_database
 from PIL import Image
 import pytesseract
 import os
@@ -22,6 +22,7 @@ import uuid
 # =========================================================
 
 app = Flask(__name__)
+initialize_database()
 
 # =========================================================
 # PHASE 4 — OCR RECEIPT READER
