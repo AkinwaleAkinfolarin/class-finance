@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {{ student["full_name"] }} | Financial Record
+    </title>
+
+
+    <style>
+
+        :root {
+
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --header: #111827;
+
+        }
+
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: var(--bg);
+
+            color: var(--text);
+
+        }
+
+
+        header {
+
+            background: var(--header);
+
+            color: white;
+
+            padding: 20px;
+
+        }
+
+
+        .header-inner {
+
+            max-width: 1100px;
+
+            margin: auto;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 15px;
+
+        }
+
+
+        header h1 {
+
+            margin: 0;
+
+            font-size: 24px;
+
+        }
+
+
+        .back {
+
+            color: white;
+
+            text-decoration: none;
+
+        }
+
+
+        main {
+
+            max-width: 1100px;
+
+            margin: auto;
+
+            padding: 30px 20px;
+
+        }
+
+
+        .student-card {
+
+            background: var(--card);
+
+            border: 1px solid var(--border);
+
+            border-radius: 14px;
+
+            padding: 25px;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .student-card h2 {
+
+            margin-top: 0;
+
+            margin-bottom: 6px;
+
+        }
+
+
+        .matric {
+
+            color: var(--muted);
+
+        }
+
+
+        .summary {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 18px;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        .summary-card {
+
+            background: var(--card);
+
+            border: 1px solid var(--border);
+
+            border-radius: 14px;
+
+            padding: 22px;
+
+        }
+
+
+        .summary-label {
+
+            color: var(--muted);
+
+            font-size: 14px;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .summary-value {
+
+            font-size: 28px;
+
+            font-weight: bold;
+
+        }
+
+
+        .section {
+
+            background: var(--card);
+
+            border: 1px solid var(--border);
+
+            border-radius: 14px;
+
+            padding: 25px;
+
+        }
+
+
+        .section h2 {
+
+            margin-top: 0;
+
+        }
+
+
+        .table-wrapper {
+
+            overflow-x: auto;
+
+        }
+
+
+        table {
+
+            width: 100%;
+
+            border-collapse: collapse;
+
+            min-width: 750px;
+
+        }
+
+
+        th,
+        td {
+
+            padding: 14px 12px;
+
+            text-align: left;
+
+            border-bottom:
+                1px solid var(--border);
+
+        }
+
+
+        th {
+
+            color: var(--muted);
+
+            font-size: 13px;
+
+        }
+
+
+        .amount {
+
+            font-weight: bold;
+
+        }
+
+
+        .badge {
+
+            display: inline-block;
+
+            padding: 6px 10px;
+
+            border-radius: 999px;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+        }
+
+
+        .pending {
+
+            background: #fef3c7;
+
+            color: #92400e;
+
+        }
+
+
+        .verified {
+
+            background: #dcfce7;
+
+            color: #166534;
+
+        }
+
+
+        .flagged {
+
+            background: #fee2e2;
+
+            color: #991b1b;
+
+        }
+
+
+        .other {
+
+            background: #e5e7eb;
+
+            color: #374151;
+
+        }
+
+
+        .receipt {
+
+            display: inline-block;
+
+            padding: 7px 10px;
+
+            background: #111827;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 7px;
+
+            font-size: 12px;
+
+            margin-right: 5px;
+
+        }
+
+
+        .empty {
+
+            text-align: center;
+
+            color: var(--muted);
+
+            padding: 30px;
+
+        }
+
+
+        @media (max-width: 600px) {
+
+            .summary {
+
+                grid-template-columns: 1fr;
+
+            }
+
+
+            .header-inner {
+
+                align-items: flex-start;
+
+                flex-direction: column;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="header-inner">
+
+        <h1>
+            Student Financial Record
+        </h1>
+
+        <a
+            class="back"
+            href="{{ url_for('students') }}"
+        >
+            ← Back to Students
+        </a>
+
+    </div>
+
+</header>
+
+
+<main>
+
+
+    <!-- =================================================
+         STUDENT INFORMATION
+    ================================================== -->
+
+    <div class="student-card">
+
+        <h2>
+            {{ student["full_name"] }}
+        </h2>
+
+        <div class="matric">
+
+            {{ student["matric_number"] }}
+
+        </div>
+
+        <div class="matric">
+
+            Status:
+            {{ student["status"] }}
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         SUMMARY
+    ================================================== -->
+
+    <div class="summary">
+
+
+        <div class="summary-card">
+
+            <div class="summary-label">
+                Total Paid
+            </div>
+
+            <div class="summary-value">
+
+                ₦{{ "{:,.2f}".format(
+                    total_paid
+                ) }}
+
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <div class="summary-label">
+                Number of Payments
+            </div>
+
+            <div class="summary-value">
+
+                {{ payment_count }}
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =================================================
+         PAYMENT HISTORY
+    ================================================== -->
+
+    <div class="section">
+
+        <h2>
+            Payment History
+        </h2>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Date
+                        </th>
+
+                        <th>
+                            Purpose
+                        </th>
+
+                        <th>
+                            Amount
+                        </th>
+
+                        <th>
+                            Reference
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Receipt
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+
+                    {% for payment in payments %}
+
+
+                    <tr>
+
+
+                        <td>
+
+                            {{ payment["payment_date"] }}
+
+                        </td>
+
+
+                        <td>
+
+                            {{ payment["purpose"] or "—" }}
+
+                        </td>
+
+
+                        <td class="amount">
+
+                            ₦{{ "{:,.2f}".format(
+                                payment["amount"]
+                            ) }}
+
+                        </td>
+
+
+                        <td>
+
+                            {{ payment["receipt_reference"] or "—" }}
+
+                        </td>
+
+
+                        <td>
+
+
+                            {% if payment["status"] == "Verified" %}
+
+                                <span class="badge verified">
+                                    Verified
+                                </span>
+
+                            {% elif payment["status"] == "Flagged" %}
+
+                                <span class="badge flagged">
+                                    Flagged
+                                </span>
+
+                            {% elif payment["status"] == "Pending" %}
+
+                                <span class="badge pending">
+                                    Pending
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge other">
+                                    {{ payment["status"] }}
+                                </span>
+
+                            {% endif %}
+
+
+                        </td>
+
+
+                        <td>
+
+
+                            {% if payment["receipt_file"] %}
+
+
+                                <a
+                                    class="receipt"
+                                    href="{{ url_for(
+                                        'view_receipt',
+                                        filename=payment[
+                                            'receipt_file'
+                                        ]
+                                    ) }}"
+                                    target="_blank"
+                                >
+                                    View
+                                </a>
+
+
+                                <a
+                                    class="receipt"
+                                    href="{{ url_for(
+                                        'download_receipt',
+                                        filename=payment[
+                                            'receipt_file'
+                                        ]
+                                    ) }}"
+                                >
+                                    Download
+                                </a>
+
+
+                            {% else %}
+
+                                —
+
+                            {% endif %}
+
+
+                        </td>
+
+
+                    </tr>
+
+
+                    {% else %}
+
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="empty"
+                        >
+
+                            No payments recorded
+                            for this student.
+
+                        </td>
+
+                    </tr>
+
+
+                    {% endfor %}
+
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+</main>
+
+
+</body>
+
+</html>

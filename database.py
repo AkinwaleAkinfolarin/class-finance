@@ -1,0 +1,51 @@
+import sqlite3
+
+DATABASE = "class_finance.db"
+
+
+def get_connection():
+    connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+def initialize_database():
+    connection = get_connection()
+
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            matric_number TEXT NOT NULL UNIQUE,
+            full_name TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'Active',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS payments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER NOT NULL,
+            amount REAL NOT NULL,
+            purpose TEXT,
+            payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            receipt_reference TEXT,
+            receipt_file TEXT,
+            status TEXT NOT NULL DEFAULT 'Pending',
+            verification_note TEXT,
+            verified_by TEXT,
+            verified_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (student_id)
+                REFERENCES students(id)
+        )
+    """)
+
+    connection.commit()
+    connection.close()
+
+
+if __name__ == "__main__":
+    initialize_database()
+    print("Database initialized successfully.")

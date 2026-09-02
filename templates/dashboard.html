@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Class Finance | BME</title>
+
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --header: #111827;
+            --button: #111827;
+            --button-text: #ffffff;
+        }
+
+        body.dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+            --header: #020617;
+            --button: #f8fafc;
+            --button-text: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.25s, color 0.25s;
+        }
+
+        .header {
+            background: var(--header);
+            color: white;
+            padding: 24px 20px;
+        }
+
+        .header-inner {
+            max-width: 1100px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .brand p {
+            margin: 6px 0 0;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        .theme-toggle {
+            border: 1px solid #475569;
+            background: transparent;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .welcome {
+            margin-bottom: 24px;
+        }
+
+        .welcome h2 {
+            margin: 0 0 6px;
+        }
+
+        .welcome p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h3 {
+            margin: 0 0 10px;
+            font-size: 14px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .number {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .menu {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .menu a {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 17px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text);
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .menu a:hover {
+            transform: translateY(-2px);
+            border-color: #64748b;
+        }
+
+        .contact {
+            margin-top: 30px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+        }
+
+        .contact h3 {
+            margin-top: 0;
+        }
+
+        .whatsapp {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 11px 16px;
+            border-radius: 8px;
+            background: #22c55e;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        footer {
+            max-width: 1100px;
+            margin: 45px auto 25px;
+            padding: 0 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .header-inner {
+                align-items: flex-start;
+            }
+
+            .brand h1 {
+                font-size: 20px;
+            }
+
+            .theme-toggle {
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-inner">
+
+            <div class="brand">
+                <h1>Class Finance Management</h1>
+                <p>Biomedical Engineering • Financial Accountability System</p>
+            </div>
+
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeButton">
+                🌙 Dark Mode
+            </button>
+
+        </div>
+    </header>
+
+    <main class="container">
+
+        <section class="welcome">
+            <h2>Financial Overview</h2>
+            <p>Monitor class payments, records and outstanding balances.</p>
+        </section>
+
+        <section class="cards">
+
+            <div class="card">
+                <h3>Total Students</h3>
+                <div class="number">67</div>
+            </div>
+
+            <div class="card">
+                <h3>Active Students</h3>
+                <div class="number">67</div>
+            </div>
+
+            <div class="card">
+                <h3>Total Payments</h3>
+                <div class="number">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Verified Amount</h3>
+                <div class="number">₦0</div>
+            </div>
+
+            <div class="card">
+                <h3>Pending Payments</h3>
+                <div class="number">0</div>
+            </div>
+
+        </section>
+
+        <section class="menu">
+
+            <a href="#">
+                👥<br>
+                <strong>Students</strong>
+            </a>
+
+            <a href="#">
+                💰<br>
+                <strong>Payments</strong>
+            </a>
+
+            <a href="#">
+                📊<br>
+                <strong>Reports</strong>
+            </a>
+
+            <a href="#">
+                🔍<br>
+                <strong>Audit</strong>
+            </a>
+
+        </section>
+
+        <section class="contact">
+
+            <h3>Need help?</h3>
+
+            <p>
+                Contact the Class Representative for payment-related questions
+                or corrections.
+            </p>
+
+            <a
+                class="whatsapp"
+                href="https://wa.me/2347038570411"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                💬 Contact Class Rep
+            </a>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <strong>dev-Akinwale Akinfolarin</strong> • Class Rep<br>
+        Class Finance Management System
+    </footer>
+
+    <script>
+function applyTheme(theme) {
+        const button = document.getElementById("themeButton");
+
+        if (theme === "dark") {
+            document.body.classList.add("dark");
+            button.textContent = "☀️ Light Mode";
+        } else {
+            document.body.classList.remove("dark");
+            button.textContent = "🌙 Dark Mode";
+        }
+    }
+
+    function toggleTheme() {
+        const currentTheme =
+            document.body.classList.contains("dark")
+                ? "dark"
+                : "light";
+
+        const newTheme =
+            currentTheme === "dark"
+                ? "light"
+                : "dark";
+
+        localStorage.setItem("classFinanceTheme", newTheme);
+        applyTheme(newTheme);
+    }
+
+    const savedTheme =
+        localStorage.getItem("classFinanceTheme") || "light";
+
+    applyTheme(savedTheme);
+</script>

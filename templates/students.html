@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Students | Class Finance</title>
+
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --header: #111827;
+        }
+
+        body.dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+            --header: #020617;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            background: var(--header);
+            color: white;
+            padding: 20px;
+        }
+
+        .header-inner,
+        main {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        .back {
+            color: white;
+            text-decoration: none;
+        }
+
+        main {
+            padding: 30px 20px;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search {
+            display: flex;
+            gap: 8px;
+        }
+
+        input {
+            padding: 11px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--text);
+        }
+
+        button {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #111827;
+            color: white;
+        }
+
+        .add-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .add-box form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card);
+            border-radius: 12px;
+            overflow: hidden;
+=        }
+
+        th,
+        td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .status {
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        @media (max-width: 700px) {
+            .top {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search {
+                width: 100%;
+            }
+
+            .search input {
+                flex: 1;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            th,
+            td {
+                padding: 10px 7px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="header-inner">
+        <h1>Students</h1>
+        <a class="back" href="/">← Dashboard</a>
+    </div>
+</header>
+
+<main>
+
+    <div class="top">
+        <div>
+            <h2>Class Students</h2>
+            <p>{{ students|length }} student(s) shown</p>
+        </div>
+
+        <form class="search" method="GET" action="/students">
+            <input
+                type="text"
+                name="search"
+                placeholder="Search name or matric number"
+                value="{{ search }}"
+            >
+
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="add-box">
+
+        <h3>+ Add Student</h3>
+
+        <form method="POST" action="/students/add">
+
+            <input
+                type="text"
+                name="full_name"
+                placeholder="Full name"
+                required
+            >
+
+            <input
+                type="text"
+                name="matric_number"
+                placeholder="BME/25/XXXX"
+                required
+            >
+
+            <button type="submit">
+                Add Student
+            </button>
+
+        </form>
+
+    </div>
+
+    <table>
+
+        <thead>
+    <tr>
+        <th>S/N</th>
+        <th>Full Name</th>
+        <th>Matric Number</th>
+        <th>Status</th>
+        <th>Finance</th>
+    </tr>
+</thead>
+
+        <tbody>
+
+            {% for student in students %}
+
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ student["full_name"] }}</td>
+                <td>{{ student["matric_number"] }}</td>
+                <td class="status">
+                    {{ student["status"] }}
+                </td>
+<td>
+    <a
+        href="{{ url_for(
+            'student_finance',
+            student_id=student['id']
+        ) }}"
+        style="
+            display:inline-block;
+            padding:7px 10px;
+            background:#111827;
+            color:white;
+            text-decoration:none;
+            border-radius:7px;
+            font-size:12px;
+        "
+    >
+        View Finance
+    </a>
+</td>
+            </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="4">
+                    No students found.
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</main>
+
+</body>
+</html>

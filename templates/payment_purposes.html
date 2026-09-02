@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Payment Purposes | Class Finance</title>
+
+</head>
+
+<body>
+
+    <h1>Payment Purposes</h1>
+
+    <p>
+        Create the different payments your class needs to track.
+    </p>
+
+
+    {% with messages = get_flashed_messages(
+        with_categories=true
+    ) %}
+
+        {% for category, message in messages %}
+
+            <p>
+                {{ message }}
+            </p>
+
+        {% endfor %}
+
+    {% endwith %}
+
+
+    <form method="POST">
+
+        <label>
+            Payment Purpose
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            name="name"
+            placeholder="e.g. BME 102 Manual"
+            required
+        >
+
+        <br><br>
+
+
+        <label>
+            Expected Amount
+        </label>
+
+        <br>
+
+        <input
+            type="number"
+            name="expected_amount"
+            step="0.01"
+            min="0"
+            placeholder="3600"
+            required
+        >
+
+        <br><br>
+
+        <button type="submit">
+            Add Payment Purpose
+        </button>
+
+    </form>
+
+
+    <hr>
+
+
+    <h2>Existing Purposes</h2>
+
+    <table border="1" cellpadding="10">
+
+        <tr>
+
+            <th>
+                Purpose
+            </th>
+
+            <th>
+                Expected Amount
+            </th>
+
+            <th>
+                Status
+            </th>
+
+        </tr>
+
+
+        {% for purpose in purposes %}
+
+        <tr>
+
+            <td>
+                {{ purpose.name }}
+            </td>
+
+            <td>
+                ₦{{ "{:,.2f}".format(
+                    purpose.expected_amount
+                ) }}
+            </td>
+
+            <td>
+                {{ purpose.status }}
+            </td>
+
+        </tr>
+
+        {% else %}
+
+        <tr>
+
+            <td colspan="3">
+                No payment purposes yet.
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+
+    <br>
+
+    <a href="{{ url_for('finance_dashboard') }}">
+        ← Back to Financial Dashboard
+    </a>
+
+</body>
+
+</html>

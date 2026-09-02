@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+
+class_finance.db
+class_finance.db.backup
+
+uploads/receipts/*
+
+.env
+.env.*
+
+!.env.example
+app.py.save

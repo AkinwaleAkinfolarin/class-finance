@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Add Payment | Class Finance</title>
+
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --header: #111827;
+            --button: #111827;
+            --button-text: #ffffff;
+            --notice-bg: #fff7ed;
+            --notice-text: #9a3412;
+        }
+
+        body.dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+            --header: #020617;
+            --button: #f8fafc;
+            --button-text: #0f172a;
+            --notice-bg: #451a03;
+            --notice-text: #fed7aa;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.25s, color 0.25s;
+        }
+
+        header {
+            background: var(--header);
+            color: white;
+            padding: 20px;
+        }
+
+        .header-inner {
+            max-width: 800px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .back {
+            color: white;
+            text-decoration: none;
+        }
+
+        main {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+        .form-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 25px;
+        }
+
+        .form-card h2 {
+            margin-top: 0;
+        }
+
+        .description {
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+        }
+
+        .file-help {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .notice {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 8px;
+            background: var(--notice-bg);
+            color: var(--notice-text);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        button {
+            margin-top: 25px;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: var(--button);
+            color: var(--button-text);
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .required {
+            color: #dc2626;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                padding: 20px 12px;
+            }
+
+            .form-card {
+                padding: 18px;
+            }
+
+            .header-inner {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="header-inner">
+
+        <h1>Add Payment</h1>
+
+        <a class="back" href="/">
+            ← Dashboard
+        </a>
+
+    </div>
+</header>
+
+
+<main>
+
+    <div class="form-card">
+
+        <h2>Record a Payment</h2>
+
+        <p class="description">
+            Record a class payment together with its supporting
+            receipt. New payments remain <strong>Pending</strong>
+            until they are reviewed by an authorized auditor.
+        </p>
+
+
+        <!-- IMPORTANT:
+             enctype allows Flask to receive the uploaded receipt.
+        -->
+
+        <form
+            method="POST"
+            action="/payments/add"
+            enctype="multipart/form-data"
+        >
+
+
+            <!-- STUDENT -->
+
+            <label for="student_id">
+                Student <span class="required">*</span>
+            </label>
+
+            <select
+                name="student_id"
+                id="student_id"
+                required
+            >
+
+                <option value="">
+                    Select student
+                </option>
+
+                {% for student in students %}
+
+                <option value="{{ student['id'] }}">
+                    {{ student['matric_number'] }} —
+                    {{ student['full_name'] }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <!-- AMOUNT -->
+
+            <label for="amount">
+                Amount Paid (₦) <span class="required">*</span>
+            </label>
+
+            <input
+                type="number"
+                name="amount"
+                id="amount"
+                min="0"
+                step="0.01"
+                placeholder="e.g. 3600"
+                required
+            >
+
+
+            <!-- PURPOSE / NARRATION -->
+
+            <label for="purpose">
+                Purpose / Narration
+                <span class="required">*</span>
+            </label>
+
+            <textarea
+                name="purpose"
+                id="purpose"
+                placeholder="What is this payment for?"
+            ></textarea>
+
+
+            <!-- RECEIPT UPLOAD -->
+
+            <label for="receipt">
+                Payment Receipt
+                <span class="required">*</span>
+            </label>
+
+            <input
+                type="file"
+                name="receipt"
+                id="receipt"
+                accept=".jpg,.jpeg,.png,.pdf"
+                required
+            >
+
+            <span class="file-help">
+                Accepted formats: JPG, JPEG, PNG and PDF.
+            </span>
+
+
+            <!-- RECEIPT REFERENCE -->
+
+            <label for="receipt_reference">
+                Receipt Reference
+            </label>
+
+            <input
+                type="text"
+                name="receipt_reference"
+                id="receipt_reference"
+                placeholder="Enter receipt/reference number"
+            >
+
+
+            <!-- WARNING -->
+
+            <div class="notice">
+                ⚠️ <strong>Verification notice:</strong><br>
+
+                Payments without a narration, invalid amounts,
+                unknown students or duplicate receipt references
+                may be automatically flagged for review.
+
+                Uploading a receipt does not automatically mean
+                the payment is verified.
+            </div>
+
+
+            <!-- SUBMIT -->
+
+            <button type="submit">
+                Record Payment
+            </button>
+
+        </form>
+
+    </div>
+
+</main>
+
+</body>
+</html>
