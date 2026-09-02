@@ -86,3 +86,7 @@ The application has been tested locally, including student management, payment r
 License
 
 This project is currently not licensed for unrestricted reuse or redistribution.
+
+## Developer & Project Origin
+
+Class Finance was designed and developed by **Akinwale Akinfolarin Benjamin**. The project is maintained in this repository, with Git commits documenting its development history.
