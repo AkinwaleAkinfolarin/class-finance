@@ -16,3 +16,4 @@ create_admin.py
 
 *.sqlite_backup
 *.py.sqlite_backup
+migrate_sqlite_to_postgres.py
