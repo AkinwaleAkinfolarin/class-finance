@@ -1417,7 +1417,7 @@ def finance_dashboard():
         )
         FROM payments
         """
-    ).fetchone()["total_received"]
+    ).fetchone()["coalesce"]
 
 
     # =====================================================
