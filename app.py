@@ -3,11 +3,14 @@ from flask import (
     render_template,
     request,
     redirect,
+    session,
+    flash,
     url_for,
     send_from_directory
 )
 
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 from database import get_connection, initialize_database
 from PIL import Image
 import pytesseract
@@ -438,14 +441,105 @@ def allowed_file(filename):
         and filename.rsplit(".", 1)[1].lower()
         in ALLOWED_EXTENSIONS
     )
+# =========================================================
+# ADMIN LOGIN
+# =========================================================
+
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+
+    if request.method == "POST":
+
+        username = request.form.get(
+            "username",
+            ""
+        ).strip()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+        connection = get_connection()
+
+        admin = connection.execute(
+            """
+            SELECT id, username, password_hash, full_name
+            FROM admins
+            WHERE username = ?
+              AND status = 'Active'
+            """,
+            (username,)
+        ).fetchone()
+
+        connection.close()
+
+        if admin and check_password_hash(
+            admin["password_hash"],
+            password
+        ):
+
+            session["admin_logged_in"] = True
+            session["admin_id"] = admin["id"]
+            session["admin_username"] = admin["username"]
+            session["admin_full_name"] = admin["full_name"]
+
+            return redirect(
+                url_for("home")
+            )
+
+        return render_template(
+            "admin_login.html",
+            error="Invalid username or password."
+        )
+
+    return render_template(
+        "admin_login.html"
+    )
+
+
+@app.route("/admin/logout")
+def admin_logout():
+
+    session.pop(
+        "admin_logged_in",
+        None
+    )
+
+    return redirect(
+        url_for("admin_login")
+    )
 
 
 # =========================================================
+# ADMIN ACCESS CHECK
+# =========================================================
+
+def admin_required():
+
+    if not session.get(
+        "admin_logged_in"
+    ):
+
+        return redirect(
+            url_for("admin_login")
+        )
+
+    return None
+# =========================================================
+# ADMIN LOGIN
+# =========================================================
+
 # MAIN DASHBOARD
 # =========================================================
 
 @app.route("/")
 def home():
+
+    access = admin_required()
+
+    if access:
+        return access
 
     connection = get_connection()
 
@@ -819,6 +913,10 @@ def student_history():
 
 @app.route("/students")
 def students():
+    access = admin_required()
+    if access:
+        return access
+
     search = request.args.get(
         "search",
         ""
@@ -872,7 +970,12 @@ def students():
 
 @app.route("/students/add", methods=["POST"])
 def add_student():
+    
+    access = admin_required()
 
+    if access:
+        return access
+    
     matric_number = request.form.get(
         "matric_number",
         ""
@@ -925,6 +1028,11 @@ def add_student():
     methods=["GET", "POST"]
 )
 def add_payment():
+
+    access = admin_required()
+
+    if access:
+        return access
 
     connection = get_connection()
 
@@ -1288,6 +1396,11 @@ def add_payment():
 @app.route("/finance")
 def finance_dashboard():
 
+    access = admin_required()
+
+    if access:
+        return access
+
     connection = get_connection()
 
 
@@ -1472,6 +1585,11 @@ def finance_dashboard():
     methods=["GET", "POST"]
 )
 def payment_purposes():
+    
+    access = admin_required()
+
+    if access:
+        return access
 
     connection = get_connection()
 
@@ -1584,13 +1702,17 @@ def payment_purposes():
 
 @app.route("/students/<int:student_id>/finance")
 def student_finance(student_id):
+   
+    access = admin_required()
+
+    if access:
+        return access
 
     connection = get_connection()
 
     # -----------------------------------------------------
     # Get student
-    # -----------------------------------------------------
-
+    # ------------------------------------------------------
     student = connection.execute(
         """
         SELECT *
@@ -1688,6 +1810,11 @@ def student_finance(student_id):
     "/uploads/receipts/<filename>"
 )
 def view_receipt(filename):
+    
+    access = admin_required()
+
+    if access:
+        return access
 
     return send_from_directory(
         UPLOAD_FOLDER,
@@ -1704,6 +1831,11 @@ def view_receipt(filename):
     "/uploads/receipts/<filename>/download"
 )
 def download_receipt(filename):
+ 
+    access = admin_required()
+
+    if access:
+        return access
 
     return send_from_directory(
         UPLOAD_FOLDER,

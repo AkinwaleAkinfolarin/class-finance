@@ -12,3 +12,4 @@ uploads/receipts/*
 
 !.env.example
 app.py.save
+create_admin.py
