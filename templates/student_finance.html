@@ -591,8 +591,7 @@
 
                                     <a
                                         class="receipt"
-                                        href="{{ payment['receipt_file'] }}"
-                                        download
+                                        href="{{ payment['receipt_file'].replace('/upload/', '/upload/fl_attachment/') }}"
                                     >
                                         Download
                                     </a>
