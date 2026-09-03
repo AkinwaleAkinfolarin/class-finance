@@ -549,7 +549,7 @@ def home():
         SELECT COUNT(*)
         FROM students
         """
-    ).fetchone()[0]
+    ).fetchone()["count"]
 
     active_students = connection.execute(
         """
@@ -557,7 +557,7 @@ def home():
         FROM students
         WHERE status = 'Active'
         """
-    ).fetchone()[0]
+    ).fetchone()["count"]
 
     connection.close()
 
@@ -1417,7 +1417,7 @@ def finance_dashboard():
         )
         FROM payments
         """
-    ).fetchone()[0]
+    ).fetchone()["total_received"]
 
 
     # =====================================================
@@ -1430,7 +1430,7 @@ def finance_dashboard():
         FROM students
         WHERE status = 'Active'
         """
-    ).fetchone()[0]
+    ).fetchone()["count"]
 
 
     # =====================================================
@@ -1452,7 +1452,7 @@ def finance_dashboard():
         WHERE status = 'Active'
         """,
         (active_students,)
-    ).fetchone()[0]
+    ).fetchone()["coalesce"]
 
 
     # =====================================================
@@ -1482,7 +1482,7 @@ def finance_dashboard():
         FROM payments
         WHERE status = 'Pending'
         """
-    ).fetchone()[0]
+    ).fetchone()["coalesce"]
 
 
     # =====================================================
@@ -1498,7 +1498,7 @@ def finance_dashboard():
         FROM payments
         WHERE status = 'Verified'
         """
-    ).fetchone()[0]
+    ).fetchone()["coalesce"]
 
 
     # =====================================================
@@ -1514,7 +1514,7 @@ def finance_dashboard():
         FROM payments
         WHERE status = 'Flagged'
         """
-    ).fetchone()[0]
+    ).fetchone()["coalesce"]
 
 
     # =====================================================
@@ -1770,7 +1770,7 @@ def student_finance(student_id):
         WHERE student_id = ?
         """,
         (student_id,)
-    ).fetchone()[0]
+    ).fetchone()["coalesce"]
 
 
     # -----------------------------------------------------
@@ -1784,7 +1784,7 @@ def student_finance(student_id):
         WHERE student_id = ?
         """,
         (student_id,)
-    ).fetchone()[0]
+    ).fetchone()["count"]
 
 
     connection.close()
