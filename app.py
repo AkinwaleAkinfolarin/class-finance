@@ -18,6 +18,7 @@ import os
 import re
 import uuid
 import sqlite3
+from psycopg2 import IntegrityError as PostgreSQLIntegrityError
 
 
 # =========================================================
@@ -1006,7 +1007,7 @@ def add_student():
 
         connection.commit()
 
-    except sqlite3.IntegrityError:
+    except (sqlite3.IntegrityError, PostgreSQLIntegrityError):
         connection.close()
 
         return redirect(
