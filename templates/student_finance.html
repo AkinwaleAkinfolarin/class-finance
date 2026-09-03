@@ -579,31 +579,42 @@
                             {% if payment["receipt_file"] %}
 
 
-                                <a
-                                    class="receipt"
-                                    href="{{ url_for(
-                                        'view_receipt',
-                                        filename=payment[
-                                            'receipt_file'
-                                        ]
-                                    ) }}"
-                                    target="_blank"
-                                >
-                                    View
-                                </a>
+                                {% if payment["receipt_file"].startswith("http://") or payment["receipt_file"].startswith("https://") %}
 
+                                    <a
+                                        class="receipt"
+                                        href="{{ payment['receipt_file'] }}"
+                                        target="_blank"
+                                    >
+                                        View
+                                    </a>
 
-                                <a
-                                    class="receipt"
-                                    href="{{ url_for(
-                                        'download_receipt',
-                                        filename=payment[
-                                            'receipt_file'
-                                        ]
-                                    ) }}"
-                                >
-                                    Download
-                                </a>
+                                    <a
+                                        class="receipt"
+                                        href="{{ payment['receipt_file'] }}"
+                                        download
+                                    >
+                                        Download
+                                    </a>
+
+                                {% else %}
+
+                                    <a
+                                        class="receipt"
+                                        href="{{ url_for('view_receipt', filename=payment['receipt_file']) }}"
+                                        target="_blank"
+                                    >
+                                        View
+                                    </a>
+
+                                    <a
+                                        class="receipt"
+                                        href="{{ url_for('download_receipt', filename=payment['receipt_file']) }}"
+                                    >
+                                        Download
+                                    </a>
+
+                                {% endif %}
 
 
                             {% else %}

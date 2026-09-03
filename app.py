@@ -18,6 +18,8 @@ import os
 import re
 import uuid
 import sqlite3
+import cloudinary
+import cloudinary.uploader
 from psycopg2 import IntegrityError as PostgreSQLIntegrityError
 
 
@@ -416,6 +418,13 @@ def verify_payment_with_ocr(
         "note": note
     }
 app.secret_key = os.environ.get("SECRET_KEY")
+
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    secure=True
+)
 # Maximum uploaded receipt size: 5 MB
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 
@@ -727,6 +736,18 @@ def student_payment():
         )
 
         receipt.save(receipt_path)
+
+        # ================================================
+        # UPLOAD RECEIPT TO CLOUDINARY
+        # ================================================
+
+        cloudinary_result = cloudinary.uploader.upload(
+            receipt_path,
+            folder="class_finance/receipts",
+            resource_type="auto"
+        )
+
+        receipt_filename = cloudinary_result["secure_url"]
 
         # ================================================
         # OCR
@@ -1228,6 +1249,18 @@ def add_payment():
             )
 
             receipt.save(receipt_path)
+
+            # =================================================
+            # UPLOAD RECEIPT TO CLOUDINARY
+            # =================================================
+
+            cloudinary_result = cloudinary.uploader.upload(
+                receipt_path,
+                folder="class_finance/receipts",
+                resource_type="auto"
+            )
+
+            receipt_filename = cloudinary_result["secure_url"]
 
             # =================================================
             # PHASE 4 — OCR PROCESSING
@@ -1817,6 +1850,9 @@ def view_receipt(filename):
     if access:
         return access
 
+    if filename.startswith("http://") or filename.startswith("https://"):
+        return redirect(filename)
+
     return send_from_directory(
         UPLOAD_FOLDER,
         filename,
@@ -1837,6 +1873,9 @@ def download_receipt(filename):
 
     if access:
         return access
+
+    if filename.startswith("http://") or filename.startswith("https://"):
+        return redirect(filename)
 
     return send_from_directory(
         UPLOAD_FOLDER,
