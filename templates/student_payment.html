@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Submit Payment | Class Finance</title>
+
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --header: #111827;
+            --button: #111827;
+            --button-text: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            background: var(--header);
+            color: white;
+            padding: 22px 20px;
+        }
+
+        .header-inner {
+            max-width: 800px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .back {
+            color: white;
+            text-decoration: none;
+        }
+
+        main {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 25px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .description {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        label {
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+        }
+
+        .help {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: var(--button);
+            color: var(--button-text);
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .notice {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 8px;
+            background: #f3f4f6;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="header-inner">
+
+        <h1>Submit Payment</h1>
+
+        <a class="back" href="/student">
+            ← Student Portal
+        </a>
+
+    </div>
+</header>
+
+<main>
+
+    <div class="card">
+
+        <h2>Submit Your Payment</h2>
+
+        <p class="description">
+            Enter your student details, provide your payment information,
+            and upload your payment receipt for verification.
+        </p>
+
+        <form
+            method="POST"
+            action="/student/payment"
+            enctype="multipart/form-data"
+        >
+
+            <label for="matric_number">
+                Matric Number *
+            </label>
+
+            <input
+                type="text"
+                name="matric_number"
+                id="matric_number"
+                placeholder="e.g. BME/25/8058"
+                required
+            >
+
+            <label for="full_name">
+                Full Name *
+            </label>
+
+            <input
+                type="text"
+                name="full_name"
+                id="full_name"
+                placeholder="Enter your registered full name"
+                required
+            >
+             <label for="purpose">Payment Purpose *</label>
+             <input
+                type="text"
+                id="purpose"
+                name="purpose"
+                placeholder="e.g. BME 102 Manual"
+                required
+             >
+             <label for="amount">Amount Paid *</label>
+             <input
+                type="number"
+                id="amount"
+                name="amount"
+                placeholder="e.g. 3000"
+                min="0"
+                step="0.01"
+                required
+             > 
+            <label for="receipt_reference">
+                Receipt Reference
+            </label>
+
+            <input
+                type="text"
+                name="receipt_reference"
+                id="receipt_reference"
+                placeholder="Enter receipt/reference number"
+            >
+
+            <label for="receipt">
+                Payment Receipt *
+            </label>
+
+            <input
+                type="file"
+                name="receipt"
+                id="receipt"
+                accept=".jpg,.jpeg,.png,.pdf"
+                required
+            >
+
+            <span class="help">
+                Accepted formats: JPG, JPEG, PNG and PDF. Maximum size: 5 MB.
+            </span>
+
+            <div class="notice">
+                ⚠️ Your receipt will be checked before the payment is
+                marked as verified. Make sure the information you provide
+                matches the receipt.
+            </div>
+
+            <button type="submit">
+                Submit Payment Receipt
+            </button>
+
+        </form>
+
+    </div>
+
+</main>
+
+</body>
+</html>
+

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Portal | Class Finance</title>
+
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --header: #111827;
+            --button: #111827;
+            --button-text: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            background: var(--header);
+            color: white;
+            padding: 22px 20px;
+        }
+
+        .header-inner {
+            max-width: 800px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .back {
+            color: white;
+            text-decoration: none;
+        }
+
+        main {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 25px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .description {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .portal-actions {
+            display: grid;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .portal-button {
+            display: block;
+            padding: 18px;
+            border-radius: 10px;
+            background: var(--button);
+            color: var(--button-text);
+            text-decoration: none;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .portal-button:hover {
+            opacity: 0.9;
+        }
+
+        .info {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f3f4f6;
+            color: var(--muted);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="header-inner">
+        <h1>Student Portal</h1>
+
+        <a class="back" href="/">
+            ← Dashboard
+        </a>
+    </div>
+</header>
+
+<main>
+
+    <div class="card">
+
+        <h2>Class Finance Student Portal</h2>
+
+        <p class="description">
+            Welcome to the Class Finance Student Portal.
+            Here you can submit proof of your class payment
+            and check the status of payments you have submitted.
+        </p>
+
+        <div class="portal-actions">
+
+            <a class="portal-button" href="/student/payment">
+                💳 Submit Payment Receipt
+            </a>
+
+            <a class="portal-button" href="/student/history">
+                📋 My Payment History
+            </a>
+
+        </div>
+
+        <div class="info">
+            🔒 Your payment information is linked to your
+            student record. Only your own payment records
+            should be accessible through the student portal.
+        </div>
+
+    </div>
+
+</main>
+
+</body>
+</html>

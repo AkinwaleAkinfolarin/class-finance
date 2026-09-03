@@ -14,7 +14,7 @@ import pytesseract
 import os
 import re
 import uuid
-
+import sqlite3
 
 
 # =========================================================
@@ -472,14 +472,353 @@ def home():
         active_students=active_students
     )
 
-
 # =========================================================
 # STUDENTS
 # =========================================================
 
+@app.route("/student")
+def student_portal():
+    return render_template("student_portal.html")
+@app.route(
+    "/student/payment",
+    methods=["GET", "POST"]
+)
+def student_payment():
+
+    connection = get_connection()
+
+    purposes = connection.execute(
+        """
+        SELECT name, expected_amount
+        FROM payment_purposes
+        WHERE status = 'Active'
+        ORDER BY name
+        """
+    ).fetchall()
+
+    if request.method == "POST":
+
+        matric_number = request.form.get(
+            "matric_number",
+            ""
+        ).strip()
+
+        full_name = request.form.get(
+            "full_name",
+            ""
+        ).strip()
+
+        amount = request.form.get(
+            "amount",
+            ""
+        ).strip()
+
+        purpose = request.form.get(
+            "purpose",
+            ""
+        ).strip()
+
+        receipt_reference = request.form.get(
+            "receipt_reference",
+            ""
+        ).strip()
+
+        receipt = request.files.get(
+            "receipt"
+        )
+
+        # ================================================
+        # VERIFY STUDENT
+        # ================================================
+
+        student = connection.execute(
+            """
+            SELECT id, full_name
+            FROM students
+            WHERE matric_number = ?
+              AND LOWER(full_name) = LOWER(?)
+              AND status = 'Active'
+            """,
+            (
+                matric_number,
+                full_name
+            )
+        ).fetchone()
+
+        if not student:
+
+            connection.close()
+
+            return (
+                "Student details could not be verified. "
+                "Please check your matric number and full name.",
+                400
+            )
+
+        # ================================================
+        # AMOUNT VALIDATION
+        # ================================================
+
+        try:
+
+            amount_value = float(amount)
+
+            if amount_value <= 0:
+
+                connection.close()
+
+                return (
+                    "Invalid payment amount.",
+                    400
+                )
+
+        except (ValueError, TypeError):
+
+            connection.close()
+
+            return (
+                "Invalid payment amount.",
+                400
+            )
+
+        # ================================================
+        # RECEIPT VALIDATION
+        # ================================================
+
+        if not receipt or not receipt.filename:
+
+            connection.close()
+
+            return (
+                "Please upload your payment receipt.",
+                400
+            )
+
+        if not allowed_file(receipt.filename):
+
+            connection.close()
+
+            return (
+                "Invalid receipt file type. "
+                "Only JPG, JPEG, PNG and PDF are allowed.",
+                400
+            )
+
+        # ================================================
+        # CREATE UNIQUE RECEIPT FILE
+        # ================================================
+
+        clean_filename = secure_filename(
+            receipt.filename
+        )
+
+        extension = clean_filename.rsplit(
+            ".",
+            1
+        )[1].lower()
+
+        receipt_filename = (
+            f"{uuid.uuid4().hex}.{extension}"
+        )
+
+        os.makedirs(
+            UPLOAD_FOLDER,
+            exist_ok=True
+        )
+
+        receipt_path = os.path.join(
+            UPLOAD_FOLDER,
+            receipt_filename
+        )
+
+        receipt.save(receipt_path)
+
+        # ================================================
+        # OCR
+        # ================================================
+
+        ocr_text = extract_receipt_ocr(
+            receipt_path
+        )
+
+        ocr_fields = extract_receipt_fields(
+            ocr_text
+        )
+
+        # ================================================
+        # PAYMENT VERIFICATION
+        # ================================================
+
+        verification_result = verify_payment_with_ocr(
+            submitted_amount=amount_value,
+            student_name=student["full_name"],
+            purpose=purpose,
+            ocr_fields=ocr_fields
+        )
+
+        ai_verification = verification_result[
+            "verification"
+        ]
+
+        verification_note = verification_result[
+            "note"
+        ]
+
+        # ================================================
+        # CHECK DUPLICATE REFERENCE
+        # ================================================
+
+        duplicate = None
+
+        if receipt_reference:
+
+            duplicate = connection.execute(
+                """
+                SELECT id
+                FROM payments
+                WHERE receipt_reference = ?
+                """,
+                (receipt_reference,)
+            ).fetchone()
+
+        # ================================================
+        # FINAL STATUS
+        # ================================================
+
+        if duplicate:
+
+            status = "Flagged"
+
+            verification_note = (
+                "Possible duplicate receipt reference. "
+                + verification_note
+            )
+
+        elif ai_verification == "Verified":
+
+            status = "Verified"
+
+        elif ai_verification == "Review":
+
+            status = "Review"
+
+        else:
+
+            status = "Flagged"
+
+        # ================================================
+        # SAVE PAYMENT
+        # ================================================
+
+        connection.execute(
+            """
+            INSERT INTO payments (
+                student_id,
+                amount,
+                purpose,
+                receipt_reference,
+                receipt_file,
+                status,
+                verification_note,
+                ocr_text,
+                ocr_amount,
+                ocr_date,
+                ocr_reference,
+                ocr_sender,
+                ocr_recipient,
+                ocr_narration,
+                ai_verification,
+                ai_verification_note
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                student["id"],
+                amount_value,
+                purpose,
+                receipt_reference,
+                receipt_filename,
+                status,
+                verification_note,
+                ocr_text,
+                ocr_fields["ocr_amount"],
+                ocr_fields["ocr_date"],
+                ocr_fields["ocr_reference"],
+                ocr_fields["ocr_sender"],
+                ocr_fields["ocr_recipient"],
+                ocr_fields["ocr_narration"],
+                ai_verification,
+                verification_note
+            )
+        )
+
+        connection.commit()
+        connection.close()
+
+        return render_template("student_success.html") 
+
+    connection.close()
+
+    return render_template(
+        "student_payment.html",
+        purposes=purposes
+    )
+@app.route("/student/history")
+def student_history():
+
+    matric_number = request.args.get(
+        "matric_number",
+        ""
+    ).strip()
+
+    connection = get_connection()
+
+    student = None
+    payments = []
+
+    if matric_number:
+
+        student = connection.execute(
+            """
+            SELECT
+                id,
+                matric_number,
+                full_name
+            FROM students
+            WHERE matric_number = ?
+              AND status = 'Active'
+            """,
+            (matric_number,)
+        ).fetchone()
+
+        if student:
+
+            payments = connection.execute(
+                """
+                SELECT
+                    amount,
+                    purpose,
+                    payment_date,
+                    status
+                FROM payments
+                WHERE student_id = ?
+                ORDER BY payment_date DESC
+                """,
+                (student["id"],)
+            ).fetchall()
+ 
+    connection.close()
+
+    return render_template(
+        "student_history.html",
+        student=student,
+        payments=payments,
+        matric_number=matric_number
+    )
+
+
 @app.route("/students")
 def students():
-
     search = request.args.get(
         "search",
         ""
@@ -515,13 +854,68 @@ def students():
 
     connection.close()
 
+    message = request.args.get(
+        "message",
+        ""
+    ).strip()
+
     return render_template(
         "students.html",
         students=student_list,
-        search=search
+        search=search,
+        message=message
     )
 
+# =========================================================
+# ADD STUDENT
+# =========================================================
 
+@app.route("/students/add", methods=["POST"])
+def add_student():
+
+    matric_number = request.form.get(
+        "matric_number",
+        ""
+    ).strip().upper()
+
+    full_name = request.form.get(
+        "full_name",
+        ""
+    ).strip().upper()
+
+    if not matric_number or not full_name:
+        return redirect(url_for("students"))
+
+    connection = get_connection()
+
+    try:
+        connection.execute(
+            """
+            INSERT INTO students
+            (matric_number, full_name, status)
+            VALUES (?, ?, 'Active')
+            """,
+            (
+                matric_number,
+                full_name
+            )
+        )
+
+        connection.commit()
+
+    except sqlite3.IntegrityError:
+        connection.close()
+
+        return redirect(
+            url_for(
+                "students",
+                message="This matric number already exists."
+            )
+        )
+
+    connection.close()
+
+    return redirect(url_for("students")) 
 # =========================================================
 # ADD PAYMENT
 # =========================================================

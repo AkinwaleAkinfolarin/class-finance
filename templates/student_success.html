@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Submitted | Class Finance</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #172033;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .success-card {
+            width: 100%;
+            max-width: 520px;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .success-icon {
+            width: 78px;
+            height: 78px;
+            margin: 0 auto 22px;
+            border-radius: 50%;
+            background: #e8f7ee;
+            color: #168a4a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 28px;
+        }
+
+        .message {
+            color: #667085;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .status-box {
+            background: #fff8e6;
+            border: 1px solid #f3d58a;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+
+        .status-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .status {
+            color: #a66a00;
+            font-weight: bold;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            flex-direction: column;
+        }
+
+        .btn {
+            display: block;
+            padding: 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .primary {
+            background: #172033;
+            color: white;
+        }
+
+        .secondary {
+            background: #eef2f7;
+            color: #172033;
+        }
+
+        .brand {
+            margin-top: 25px;
+            font-size: 13px;
+            color: #98a2b3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="success-card">
+
+        <div class="success-icon">
+            ✓
+        </div>
+
+        <h1>Payment Submitted Successfully</h1>
+
+        <p class="message">
+            Your payment receipt has been received and submitted
+            for verification.
+        </p>
+
+        <div class="status-box">
+            <div class="status-title">Payment Status</div>
+            <div class="status">Processing Verification</div>
+        </div>
+
+        <div class="buttons">
+
+            <a href="/student/history" class="btn primary">
+                📋 View Payment History
+            </a>
+
+            <a href="/student" class="btn secondary">
+                ← Back to Student Portal
+            </a>
+
+        </div>
+
+        <div class="brand">
+            Class Finance · Student Payment System
+        </div>
+
+    </div>
+
+</body>
+</html>
+
