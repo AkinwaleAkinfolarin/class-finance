@@ -12,138 +12,439 @@
 
     <title>Payment Purposes | Class Finance</title>
 
+    <style>
+
+        :root {
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success-bg: #ecfdf5;
+            --success-text: #047857;
+            --error-bg: #fef2f2;
+            --error-text: #b91c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 18px;
+            background: var(--bg);
+            color: var(--text);
+            font-family:
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        .container {
+            max-width: 1050px;
+            margin: auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 28px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .brand p {
+            margin: 6px 0 0;
+            color: var(--muted);
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 11px 16px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+        }
+
+        .card-header h2 {
+            margin: 0 0 6px;
+            font-size: 20px;
+        }
+
+        .card-header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 14px;
+            align-items: end;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .field input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+        }
+
+        .submit-btn {
+            border: none;
+            border-radius: 9px;
+            padding: 13px 18px;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .flash {
+            padding: 13px 15px;
+            border-radius: 9px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .flash.success {
+            background: var(--success-bg);
+            color: var(--success-text);
+        }
+
+        .flash.error {
+            background: var(--error-bg);
+            color: var(--error-text);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted);
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: var(--success-bg);
+            color: var(--success-text);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px 15px;
+            color: var(--muted);
+        }
+
+        @media (max-width: 700px) {
+
+            body {
+                padding: 20px 14px;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .back-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .submit-btn {
+                width: 100%;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+        }
+
+    </style>
+
 </head>
 
 <body>
 
-    <h1>Payment Purposes</h1>
+    <div class="container">
 
-    <p>
-        Create the different payments your class needs to track.
-    </p>
+        <div class="topbar">
 
+            <div class="brand">
 
-    {% with messages = get_flashed_messages(
-        with_categories=true
-    ) %}
+                <h1>💰 Payment Purposes</h1>
 
-        {% for category, message in messages %}
+                <p>
+                    Create and manage the payments your class needs to track.
+                </p>
 
-            <p>
-                {{ message }}
-            </p>
+            </div>
 
-        {% endfor %}
+            <a
+                href="{{ url_for('finance_dashboard') }}"
+                class="back-btn"
+            >
+                ← Financial Dashboard
+            </a>
 
-    {% endwith %}
-
-
-    <form method="POST">
-
-        <label>
-            Payment Purpose
-        </label>
-
-        <br>
-
-        <input
-            type="text"
-            name="name"
-            placeholder="e.g. BME 102 Manual"
-            required
-        >
-
-        <br><br>
+        </div>
 
 
-        <label>
-            Expected Amount
-        </label>
+        {% with messages = get_flashed_messages(
+            with_categories=true
+        ) %}
 
-        <br>
+            {% for category, message in messages %}
 
-        <input
-            type="number"
-            name="expected_amount"
-            step="0.01"
-            min="0"
-            placeholder="3600"
-            required
-        >
+                <div class="flash {{ category }}">
+                    {{ message }}
+                </div>
 
-        <br><br>
+            {% endfor %}
 
-        <button type="submit">
-            Add Payment Purpose
-        </button>
-
-    </form>
+        {% endwith %}
 
 
-    <hr>
+        <section class="card">
+
+            <div class="card-header">
+
+                <h2>Add Payment Purpose</h2>
+
+                <p>
+                    Define a payment session and the expected amount per student.
+                </p>
+
+            </div>
 
 
-    <h2>Existing Purposes</h2>
+            <form method="POST">
 
-    <table border="1" cellpadding="10">
+                <div class="form-grid">
 
-        <tr>
+                    <div class="field">
 
-            <th>
-                Purpose
-            </th>
+                        <label for="name">
+                            Payment Purpose
+                        </label>
 
-            <th>
-                Expected Amount
-            </th>
+                        <input
+                            id="name"
+                            type="text"
+                            name="name"
+                            placeholder="e.g. BME 102 Manual"
+                            required
+                        >
 
-            <th>
-                Status
-            </th>
-
-        </tr>
-
-
-        {% for purpose in purposes %}
-
-        <tr>
-
-            <td>
-                {{ purpose.name }}
-            </td>
-
-            <td>
-                ₦{{ "{:,.2f}".format(
-                    purpose.expected_amount
-                ) }}
-            </td>
-
-            <td>
-                {{ purpose.status }}
-            </td>
-
-        </tr>
-
-        {% else %}
-
-        <tr>
-
-            <td colspan="3">
-                No payment purposes yet.
-            </td>
-
-        </tr>
-
-        {% endfor %}
-
-    </table>
+                    </div>
 
 
-    <br>
+                    <div class="field">
 
-    <a href="{{ url_for('finance_dashboard') }}">
-        ← Back to Financial Dashboard
-    </a>
+                        <label for="expected_amount">
+                            Expected Amount (₦)
+                        </label>
+
+                        <input
+                            id="expected_amount"
+                            type="number"
+                            name="expected_amount"
+                            step="0.01"
+                            min="0"
+                            placeholder="3600"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="submit-btn"
+                    >
+                        + Add Purpose
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <section class="card">
+
+            <div class="card-header">
+
+                <h2>Existing Purposes</h2>
+
+                <p>
+                    Payment sessions currently configured for the class.
+                </p>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Purpose</th>
+
+                            <th>Expected Amount</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for purpose in purposes %}
+
+                        <tr>
+
+                            <td>
+                                <strong>
+                                    {{ purpose.name }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                ₦{{ "{:,.2f}".format(
+                                    purpose.expected_amount
+                                ) }}
+                            </td>
+
+                            <td>
+
+                                <span class="status">
+                                    {{ purpose.status }}
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+
+                            <td
+                                colspan="3"
+                                class="empty"
+                            >
+                                No payment purposes yet.
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </div>
 
 </body>
 

@@ -20,6 +20,7 @@ import uuid
 import sqlite3
 import cloudinary
 import cloudinary.uploader
+from groq import Groq
 from psycopg2 import IntegrityError as PostgreSQLIntegrityError
 
 
@@ -28,6 +29,281 @@ from psycopg2 import IntegrityError as PostgreSQLIntegrityError
 # =========================================================
 
 app = Flask(__name__)
+groq_client = Groq()
+
+def get_finance_summary():
+    connection = get_connection()
+
+    total_students = connection.execute(
+        "SELECT COUNT(*) AS count FROM students"
+    ).fetchone()["count"]
+
+    total_payments = connection.execute(
+        "SELECT COUNT(*) AS count FROM payments"
+    ).fetchone()["count"]
+
+    verified_amount = connection.execute(
+        """
+        SELECT COALESCE(SUM(amount), 0) AS total
+        FROM payments
+        WHERE status = 'Verified'
+        """
+    ).fetchone()["total"]
+
+    pending_amount = connection.execute(
+        """
+        SELECT COALESCE(SUM(amount), 0) AS total
+        FROM payments
+        WHERE status IN ('Pending', 'Review')
+        """
+    ).fetchone()["total"]
+
+    flagged_amount = connection.execute(
+        """
+        SELECT COALESCE(SUM(amount), 0) AS total
+        FROM payments
+        WHERE status = 'Flagged'
+        """
+    ).fetchone()["total"]
+
+    connection.close()
+
+    return {
+        "total_students": total_students,
+        "total_payments": total_payments,
+        "verified_amount": verified_amount,
+        "pending_amount": pending_amount,
+        "flagged_amount": flagged_amount
+    }
+
+
+def generate_manual_purchase_list(purpose):
+    connection = get_connection()
+
+    students = connection.execute(
+        """
+        SELECT
+            s.matric_number,
+            s.full_name,
+            COALESCE(SUM(
+                CASE
+                    WHEN p.status = 'Verified'
+                    AND UPPER(TRIM(p.purpose)) = UPPER(TRIM(?))
+                    THEN p.amount
+                    ELSE 0
+                END
+            ), 0) AS verified_paid
+        FROM students s
+        LEFT JOIN payments p
+            ON p.student_id = s.id
+        GROUP BY s.id, s.matric_number, s.full_name
+        HAVING COALESCE(SUM(
+            CASE
+                WHEN p.status = 'Verified'
+                AND UPPER(TRIM(p.purpose)) = UPPER(TRIM(?))
+                THEN p.amount
+                ELSE 0
+            END
+        ), 0) > 0
+        ORDER BY s.full_name
+        """,
+        (purpose, purpose)
+    ).fetchall()
+
+    connection.close()
+
+    return [
+        {
+            "matric_number": student["matric_number"],
+            "full_name": student["full_name"],
+            "verified_paid": float(student["verified_paid"] or 0)
+        }
+        for student in students
+    ]
+def ask_finance_ai(question):
+    summary = get_finance_summary()
+    connection = get_connection()
+
+    purposes = connection.execute(
+        """
+        SELECT name, expected_amount
+        FROM payment_purposes
+        WHERE status = 'Active'
+
+        UNION
+
+        SELECT DISTINCT purpose AS name, NULL AS expected_amount
+        FROM payments
+        WHERE purpose IS NOT NULL
+          AND TRIM(purpose) != ''
+
+        ORDER BY name
+        """
+    ).fetchall()
+    student_rows = connection.execute(
+        """
+        SELECT
+            s.matric_number,
+            s.full_name,
+            COALESCE(SUM(
+                CASE
+                    WHEN p.status = 'Verified'
+                    THEN p.amount
+                    ELSE 0
+                END
+            ), 0) AS paid
+        FROM students s
+        LEFT JOIN payments p
+            ON p.student_id = s.id
+        GROUP BY s.id, s.matric_number, s.full_name
+        ORDER BY s.full_name
+        """
+    ).fetchall()
+
+    connection.close()
+
+    student_context = "\n".join(
+        f"- {student['matric_number']} | {student['full_name']} | "
+        f"Verified paid: ₦{float(student['paid'] or 0):,.2f}"
+        for student in student_rows
+    )
+
+    question_lower = question.lower()
+    selected_purpose = None
+
+    for purpose in purposes:
+        purpose_name = purpose["name"]
+        if purpose_name.lower() in question_lower:
+            selected_purpose = purpose_name
+            break
+
+    if selected_purpose:
+        selected_expected_amount = next(
+            (
+                float(p["expected_amount"])
+                for p in purposes
+                if p["name"].lower() == selected_purpose.lower()
+                and p["expected_amount"] is not None
+            ),
+            None
+        )
+
+        payment_list = generate_manual_purchase_list(selected_purpose)
+
+        selected_collected = sum(
+            student["verified_paid"]
+            for student in payment_list
+        )
+        expected_fee_display = (
+            f"₦{selected_expected_amount:,.2f}"
+            if selected_expected_amount is not None
+            else "Not configured"
+        )
+        expected_total = (
+            selected_expected_amount * summary["total_students"]
+            if selected_expected_amount is not None
+            else None
+        )
+
+        outstanding = (
+            max(expected_total - selected_collected, 0)
+            if expected_total is not None
+            else None
+        )
+
+        payment_context = f"""
+Purpose: {selected_purpose}
+Expected fee per student: {expected_fee_display}
+Total students: {summary["total_students"]}
+Expected total: {
+    f"₦{expected_total:,.2f}"
+    if expected_total is not None
+    else "Not configured"
+}
+Verified collected for this purpose: ₦{selected_collected:,.2f}
+Outstanding: {
+    f"₦{outstanding:,.2f}"
+    if outstanding is not None
+    else "Not calculable"
+}
+
+Verified payments for this purpose:
+"""
+        if payment_list:
+            payment_context += "\n".join(
+                f"- {student['matric_number']} | {student['full_name']} | "
+                f"Verified payment: ₦{student['verified_paid']:,.2f}"
+                for student in payment_list
+            )
+        else:
+            payment_context += (
+                f"\nNo verified payments recorded for {selected_purpose}."
+            )
+    else:
+        payment_context = "No specific payment purpose was identified."
+    context = f"""
+Class Finance database summary:
+- Total students: {summary["total_students"]}
+- Total payments recorded: {summary["total_payments"]}
+- Verified amount collected: ₦{summary["verified_amount"]:,.2f}
+- Pending/review amount: ₦{summary["pending_amount"]:,.2f}
+- Flagged amount: ₦{summary["flagged_amount"]:,.2f}
+
+Selected payment purpose:
+{selected_purpose or "None"}
+
+Payment records:
+{payment_context}
+
+Student payment status:
+{student_context if not selected_purpose else "Not included because a specific payment purpose was selected."}
+"""
+    response = groq_client.chat.completions.create(
+        model="openai/gpt-oss-120b",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are the Class Finance AI Assistant. "
+                    "Use only the database information provided. "
+                    "Whenever you present tabular data, wrap the table between "
+                    "[TABLE] and [/TABLE]. "
+                    "Inside the table, put each row on its own line and separate columns "
+                    "with the | character. "
+                    "The first line must contain the column headings. "
+                    "Never output table rows as separate plain-text lines outside the "
+                    "[TABLE] and [/TABLE] markers. "
+                    "Keep answers clear and concise. "
+                    "Do not invent or estimate financial figures. "
+                    "Only calculate outstanding amounts when an expected fee is explicitly "
+                    "available in the database."
+)
+            },
+            {
+                "role": "user",
+                "content": context + "\n\nQuestion: " + question
+            }
+        ]
+    )
+
+    return response.choices[0].message.content
+
+def ask_groq(question):
+    response = groq_client.chat.completions.create(
+        model="openai/gpt-oss-120b",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are the Class Finance AI Assistant. Give clear, concise answers."
+            },
+            {
+                "role": "user",
+                "content": question
+            }
+        ]
+    )
+
+    return response.choices[0].message.content
 initialize_database()
 
 from import_students import import_students
@@ -131,7 +407,7 @@ def extract_receipt_fields(ocr_text):
         r"(?:\s+\d{1,2}:\d{2}:\d{2})?)",
         text
     )
-   
+
     if date_match:
         fields["ocr_date"] = date_match.group(1).strip()
 
@@ -308,7 +584,7 @@ def verify_payment_with_ocr(
 
         checks.append(
             "Receipt sender could not be detected by OCR."
-        )        
+        )
     # =====================================================
     # NARRATION / PURPOSE CHECK
     # =====================================================
@@ -543,6 +819,25 @@ def admin_required():
 # MAIN DASHBOARD
 # =========================================================
 
+@app.route("/api/ai", methods=["POST"])
+def ai_assistant():
+    if "admin_id" not in session:
+        return {"error": "Unauthorized"}, 401
+
+    data = request.get_json(silent=True) or {}
+    question = data.get("question", "").strip()
+
+    if not question:
+        return {"error": "Please enter a question."}, 400
+
+    try:
+        answer = ask_finance_ai(question)
+        return {"answer": answer}
+    except Exception as e:
+        print("AI ERROR:", e)
+        return {"error": "AI Assistant is temporarily unavailable."}, 500
+
+
 @app.route("/")
 def home():
 
@@ -555,14 +850,14 @@ def home():
 
     total_students = connection.execute(
         """
-        SELECT COUNT(*)
+        SELECT COUNT(*) AS count
         FROM students
         """
     ).fetchone()["count"]
 
     active_students = connection.execute(
         """
-        SELECT COUNT(*)
+        SELECT COUNT(*) AS count
         FROM students
         WHERE status = 'Active'
         """
@@ -871,7 +1166,7 @@ def student_payment():
         connection.commit()
         connection.close()
 
-        return render_template("student_success.html") 
+        return render_template("student_success.html")
 
     connection.close()
 
@@ -922,7 +1217,7 @@ def student_history():
                 """,
                 (student["id"],)
             ).fetchall()
- 
+
     connection.close()
 
     return render_template(
@@ -992,12 +1287,12 @@ def students():
 
 @app.route("/students/add", methods=["POST"])
 def add_student():
-    
+
     access = admin_required()
 
     if access:
         return access
-    
+
     matric_number = request.form.get(
         "matric_number",
         ""
@@ -1040,7 +1335,7 @@ def add_student():
 
     connection.close()
 
-    return redirect(url_for("students")) 
+    return redirect(url_for("students"))
 # =========================================================
 # ADD PAYMENT
 # =========================================================
@@ -1447,10 +1742,10 @@ def finance_dashboard():
         SELECT COALESCE(
             SUM(amount),
             0
-        )
+        ) AS total_received
         FROM payments
         """
-    ).fetchone()["coalesce"]
+    ).fetchone()["total_received"]
 
 
     # =====================================================
@@ -1459,7 +1754,7 @@ def finance_dashboard():
 
     active_students = connection.execute(
         """
-        SELECT COUNT(*)
+        SELECT COUNT(*) AS count
         FROM students
         WHERE status = 'Active'
         """
@@ -1480,12 +1775,12 @@ def finance_dashboard():
                 ? * expected_amount
             ),
             0
-        )
+        ) AS total_expected
         FROM payment_purposes
         WHERE status = 'Active'
         """,
         (active_students,)
-    ).fetchone()["coalesce"]
+    ).fetchone()["total_expected"]
 
 
     # =====================================================
@@ -1511,11 +1806,11 @@ def finance_dashboard():
         SELECT COALESCE(
             SUM(amount),
             0
-        )
+        ) AS pending
         FROM payments
         WHERE status = 'Pending'
         """
-    ).fetchone()["coalesce"]
+    ).fetchone()["pending"]
 
 
     # =====================================================
@@ -1527,11 +1822,11 @@ def finance_dashboard():
         SELECT COALESCE(
             SUM(amount),
             0
-        )
+        ) AS verified
         FROM payments
         WHERE status = 'Verified'
         """
-    ).fetchone()["coalesce"]
+    ).fetchone()["verified"]
 
 
     # =====================================================
@@ -1543,11 +1838,11 @@ def finance_dashboard():
         SELECT COALESCE(
             SUM(amount),
             0
-        )
+        ) AS flagged
         FROM payments
         WHERE status = 'Flagged'
         """
-    ).fetchone()["coalesce"]
+    ).fetchone()["flagged"]
 
 
     # =====================================================
@@ -1619,7 +1914,7 @@ def finance_dashboard():
     methods=["GET", "POST"]
 )
 def payment_purposes():
-    
+
     access = admin_required()
 
     if access:
@@ -1736,7 +2031,7 @@ def payment_purposes():
 
 @app.route("/students/<int:student_id>/finance")
 def student_finance(student_id):
-   
+
     access = admin_required()
 
     if access:
@@ -1844,7 +2139,7 @@ def student_finance(student_id):
     "/uploads/receipts/<filename>"
 )
 def view_receipt(filename):
-    
+
     access = admin_required()
 
     if access:
@@ -1868,7 +2163,7 @@ def view_receipt(filename):
     "/uploads/receipts/<filename>/download"
 )
 def download_receipt(filename):
- 
+
     access = admin_required()
 
     if access:

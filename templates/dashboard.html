@@ -145,6 +145,310 @@
             border-color: #64748b;
         }
 
+                    .ai-assistant {
+            margin-top: 30px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .ai-avatar {
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            color: white;
+            font-size: 25px;
+            font-weight: 700;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+        }
+
+        .ai-identity {
+            min-width: 0;
+        }
+
+        .ai-name-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-name-row h2 {
+            margin: 0;
+            font-size: 20px;
+            color: var(--text);
+        }
+
+        .ai-badge {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .ai-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 3px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .ai-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+        }
+
+        .ai-identity p {
+            margin: 7px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .ai-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
+            padding: 6px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--bg);
+        }
+
+        .ai-input input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px 13px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .ai-input input::placeholder {
+            color: var(--muted);
+        }
+
+        .ai-input button {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            border: none;
+            border-radius: 10px;
+            padding: 11px 16px;
+            background: var(--button);
+            color: var(--button-text);
+            cursor: pointer;
+            font-weight: 700;
+            transition: transform 0.15s, opacity 0.15s;
+        }
+
+        .ai-input button:hover {
+            transform: translateY(-1px);
+            opacity: 0.92;
+        }
+
+        .ai-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .ai-suggestions button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            padding: 9px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+
+        .ai-suggestions button:hover {
+            transform: translateY(-1px);
+            border-color: #64748b;
+        }
+
+        .ai-response {
+            margin-top: 18px;
+            padding: 17px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg);
+        }
+
+        .ai-response-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ai-mini-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #dbeafe;
+            color: #2563eb;
+            font-weight: 800;
+        }
+
+        .ai-response-header strong {
+            display: block;
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .ai-response-header small {
+            display: block;
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .ai-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            margin: 14px 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .ai-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 520px;
+            font-size: 13px;
+        }
+
+        .ai-table th,
+        .ai-table td {
+            padding: 11px 13px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ai-table th {
+            font-weight: 750;
+            background: var(--card);
+            color: var(--text);
+        }
+
+        .ai-table td {
+            color: var(--text);
+        }
+
+        .ai-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .ai-response-text {
+            margin-top: 14px;
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.65;
+            overflow-wrap: anywhere;
+        }
+
+        .ai-response-text strong {
+            font-weight: 750;
+        }
+
+        .ai-response-text h2,
+        .ai-response-text h3,
+        .ai-response-text h4 {
+            margin: 16px 0 8px;
+            color: var(--text);
+        }
+
+        .ai-response-text h2 {
+            font-size: 18px;
+        }
+
+        .ai-response-text h3 {
+            font-size: 16px;
+        }
+
+        .ai-response-text h4 {
+            font-size: 14px;
+        }
+
+        .ai-response-text ul {
+            margin: 8px 0 12px;
+            padding-left: 20px;
+        }
+
+        .ai-response-text li {
+            margin: 5px 0;
+        }
+
+        .ai-response-text a {
+            color: #2563eb;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .ai-response-text a:hover {
+            text-decoration: underline;
+        }
+
+        .ai-response-text br + br {
+            line-height: 0.7;
+        }
+
+        @media (max-width: 600px) {
+            .ai-assistant {
+                padding: 18px;
+                border-radius: 17px;
+            }
+
+            .ai-input {
+                flex-direction: column;
+                padding: 5px;
+            }
+
+            .ai-input button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .ai-identity p {
+                font-size: 12px;
+            }
+        }
+
         .contact {
             margin-top: 30px;
             background: var(--card);
@@ -245,7 +549,73 @@
             </div>
 
         </section>
+                 <section class="ai-assistant">
 
+            <div class="ai-header">
+                <div class="ai-avatar">
+                    <span>✦</span>
+                </div>
+
+                <div class="ai-identity">
+                    <div class="ai-name-row">
+                        <h2>Class Finance AI</h2>
+                        <span class="ai-badge">AI</span>
+                    </div>
+
+                    <div class="ai-status">
+                        <span class="ai-status-dot"></span>
+                        Online · Finance Assistant
+                    </div>
+
+                    <p>Ask me about payments, students, collections, reports and financial records.</p>
+                </div>
+            </div>
+
+            <div class="ai-input">
+                <input
+                    type="text"
+                    id="aiQuestion"
+                    placeholder="Ask Class Finance AI anything..."
+                    onkeydown="if(event.key === 'Enter') askAI()"
+                >
+
+                <button type="button" onclick="askAI()">
+                    <span>Ask AI</span>
+                    <span>↗</span>
+                </button>
+            </div>
+
+            <div class="ai-suggestions">
+                <button type="button" onclick="setQuestion('How much money have we collected?')">
+                    💰 <span>Total collected</span>
+                </button>
+
+                <button type="button" onclick="setQuestion('Who has not paid?')">
+                    👥 <span>Unpaid students</span>
+                </button>
+
+                <button type="button" onclick="setQuestion('Generate a financial report')">
+                    📊 <span>Financial report</span>
+                </button>
+
+                <button type="button" onclick="setQuestion('Generate a manual purchase list')">
+                    📦 <span>Manual list</span>
+                </button>
+            </div>
+
+            <div id="aiResponse" class="ai-response" style="display: none;">
+                <div class="ai-response-header">
+                    <div class="ai-mini-avatar">✦</div>
+                    <div>
+                        <strong>Class Finance AI</strong>
+                        <small>Verified finance assistant</small>
+                    </div>
+                </div>
+
+                <div id="aiResponseText" class="ai-response-text"></div>
+            </div>
+
+        </section>
         <section class="menu">
 
             <a href="/students">
@@ -329,4 +699,195 @@ function applyTheme(theme) {
         localStorage.getItem("classFinanceTheme") || "light";
 
     applyTheme(savedTheme);
+        function setQuestion(question) {
+        document.getElementById("aiQuestion").value = question;
+        document.getElementById("aiQuestion").focus();
+    }
+
+    function escapeHTML(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function formatAIResponse(text) {
+    let html = escapeHTML(text);
+
+    /*
+     * Convert explicit [TABLE] blocks.
+     */
+    html = html.replace(
+        /\[TABLE\]([\s\S]*?)\[\/TABLE\]/gi,
+        function(match, tableBlock) {
+            const lines = tableBlock
+                .trim()
+                .split("\n")
+                .map(line => line.trim())
+                .filter(line => line);
+
+            if (lines.length < 2) return match;
+
+            const rows = lines
+                .map(line =>
+                    line.split("|").map(cell => cell.trim())
+                )
+                .filter(row =>
+                    !row.every(cell => /^:?-{3,}:?$/.test(cell))
+                );
+
+            const headers = rows[0];
+            const dataRows = rows.slice(1);
+
+            let table =
+                '<div class="ai-table-wrap">' +
+                '<table class="ai-table">';
+
+            table += "<thead><tr>";
+
+            headers.forEach(header => {
+                table += "<th>" + header + "</th>";
+            });
+
+            table += "</tr></thead><tbody>";
+
+            dataRows.forEach(row => {
+                table += "<tr>";
+
+                headers.forEach((_, index) => {
+                    table += "<td>" + (row[index] || "") + "</td>";
+                });
+
+                table += "</tr>";
+            });
+
+            table += "</tbody></table></div>";
+
+            return table;
+        }
+    );
+
+    /*
+     * Convert plain student-detail blocks into tables.
+     */
+    html = html.replace(
+        /Student ID<br>Student Name<br>Verified Paid \(₦\)<br>([\s\S]*?)(?=<br><br|<br>\*|$)/gi,
+        function(match, block) {
+            const parts = block
+                .split("<br>")
+                .map(x => x.trim())
+                .filter(Boolean);
+
+            if (parts.length < 3) return match;
+
+            let table =
+                '<div class="ai-table-wrap">' +
+                '<table class="ai-table">' +
+                '<thead><tr>' +
+                '<th>Student ID</th>' +
+                '<th>Student Name</th>' +
+                '<th>Verified Paid (₦)</th>' +
+                '</tr></thead><tbody>';
+
+            for (let i = 0; i + 2 < parts.length; i += 3) {
+                table += "<tr>";
+                table += "<td>" + parts[i] + "</td>";
+                table += "<td>" + parts[i + 1] + "</td>";
+                table += "<td>" + parts[i + 2] + "</td>";
+                table += "</tr>";
+            }
+
+            table += "</tbody></table></div>";
+
+            return table;
+        }
+    );
+
+    html = html.replace(
+        /\*\*(.*?)\*\*/g,
+        "<strong>$1</strong>"
+    );
+
+    html = html.replace(
+        /^#### (.*)$/gm,
+        "<h4>$1</h4>"
+    );
+
+    html = html.replace(
+        /^### (.*)$/gm,
+        "<h4>$1</h4>"
+    );
+
+    html = html.replace(
+        /^## (.*)$/gm,
+        "<h3>$1</h3>"
+    );
+
+    html = html.replace(
+        /^# (.*)$/gm,
+        "<h2>$1</h2>"
+    );
+
+    html = html.replace(
+        /^[-•] (.*)$/gm,
+        "<li>$1</li>"
+    );
+
+    html = html.replace(
+        /(<li>.*<\/li>)/gs,
+        "<ul>$1</ul>"
+    );
+
+    html = html.replace(
+        /\n{2,}/g,
+        "<br><br>"
+    );
+
+    html = html.replace(
+        /\n/g,
+        "<br>"
+    );
+
+    return html;
+}
+
+function askAI() {
+        const question = document.getElementById("aiQuestion").value.trim();
+        const responseBox = document.getElementById("aiResponse");
+        const responseText = document.getElementById("aiResponseText");
+
+        if (!question) {
+            responseBox.style.display = "block";
+            responseText.textContent = "Please enter a question first.";
+            return;
+        }
+
+        responseBox.style.display = "block";
+        responseText.textContent = "Thinking...";
+
+        fetch("/api/ai", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                question: question
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.answer) {
+                responseText.innerHTML = formatAIResponse(data.answer);
+            } else {
+                responseText.textContent =
+                    data.error || "Something went wrong.";
+            }
+        })
+        .catch(() => {
+            responseText.textContent =
+                "Unable to connect to the AI Assistant.";
+        });
+    }
 </script>
