@@ -132,7 +132,7 @@ def ask_finance_ai(question):
 
         UNION
 
-        SELECT DISTINCT purpose AS name, NULL AS expected_amount
+        SELECT DISTINCT purpose AS name, NULL::DOUBLE PRECISION AS expected_amount
         FROM payments
         WHERE purpose IS NOT NULL
           AND TRIM(purpose) != ''
