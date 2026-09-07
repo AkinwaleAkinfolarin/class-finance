@@ -177,6 +177,16 @@ def ask_finance_ai(question):
             selected_purpose = purpose_name
             break
 
+    if not selected_purpose and (
+        "manual" in question_lower
+        or "purchase list" in question_lower
+        or "manual purchase" in question_lower
+    ):
+        for purpose in purposes:
+            purpose_name = purpose["name"]
+            if "manual" in purpose_name.lower():
+                selected_purpose = purpose_name
+                break
     if selected_purpose:
         selected_expected_amount = next(
             (
@@ -189,7 +199,6 @@ def ask_finance_ai(question):
         )
 
         payment_list = generate_manual_purchase_list(selected_purpose)
-
         selected_collected = sum(
             student["verified_paid"]
             for student in payment_list
