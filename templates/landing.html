@@ -1,0 +1,2078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Class Finance | Smart Class Financial Management</title>
+
+    <style>
+        :root {
+            --primary: #1565c0;
+            --primary-dark: #0d47a1;
+            --primary-light: #e3f2fd;
+            --text: #172033;
+            --muted: #64748b;
+            --white: #ffffff;
+            --background: #f5f8fc;
+            --border: #dce5f0;
+            --footer: #0b1f3a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            width: 100%;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* =========================
+           NAVBAR
+        ========================= */
+
+        .navbar {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--primary-dark);
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+        }
+
+        .brand-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            background: linear-gradient(
+                135deg,
+                var(--primary-dark),
+                var(--primary)
+            );
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 17px;
+            box-shadow: 0 5px 14px rgba(13, 71, 161, 0.18);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.15s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-login {
+            padding: 11px 18px;
+            border-radius: 9px;
+            background: var(--primary);
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(13, 71, 161, 0.14);
+        }
+
+        .nav-login:hover {
+            background: var(--primary-dark);
+        }
+
+        /* =========================
+           HERO
+        ========================= */
+
+        .hero {
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(
+                    circle at 85% 20%,
+                    rgba(21, 101, 192, 0.12),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    135deg,
+                    #f5f8fc 0%,
+                    #ffffff 55%,
+                    #e3f2fd 100%
+                );
+        }
+
+        .hero-container {
+            width: 100%;
+            max-width: 1180px;
+            min-height: 620px;
+            margin: 0 auto;
+            padding: 80px 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: 60px;
+        }
+
+        .hero-content {
+            max-width: 590px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            font-size: clamp(42px, 5vw, 64px);
+            line-height: 1.05;
+            letter-spacing: -2.5px;
+            color: var(--text);
+            margin-bottom: 24px;
+        }
+
+        .hero h1 span {
+            display: block;
+            color: var(--primary);
+        }
+
+        .hero-content > p {
+            max-width: 540px;
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1.7;
+            margin-bottom: 30px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .primary-button,
+        .secondary-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 14px 22px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 700;
+            transition: all 0.15s ease;
+        }
+
+        .primary-button {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 7px 18px rgba(13, 71, 161, 0.18);
+        }
+
+        .primary-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .secondary-button {
+            background: white;
+            color: var(--primary-dark);
+            border: 1px solid var(--primary);
+        }
+
+        .secondary-button:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .hero-points {
+            display: flex;
+            gap: 22px;
+            flex-wrap: wrap;
+            margin-top: 28px;
+        }
+
+        .hero-points span {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Dashboard preview */
+
+        .hero-visual {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            perspective: 1200px;
+        }
+
+        .dashboard-preview {
+            width: 100%;
+            max-width: 570px;
+            overflow: hidden;
+            border: 1px solid #cddbeb;
+            border-radius: 18px;
+            background: white;
+            box-shadow:
+                0 25px 60px rgba(13, 71, 161, 0.16),
+                0 8px 20px rgba(13, 71, 161, 0.08);
+            transform: rotateY(-4deg) rotateX(2deg);
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-preview:hover {
+    transform: rotateY(0) rotateX(0) translateY(-6px);
+    box-shadow:
+        0 30px 70px rgba(13, 71, 161, 0.20),
+        0 10px 25px rgba(13, 71, 161, 0.10);
+        } 
+
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px;
+            background: var(--primary-dark);
+            color: white;
+            font-size: 13px;
+        }
+
+        .preview-header span {
+            opacity: 0.75;
+            font-size: 11px;
+        }
+
+        .preview-body {
+            display: grid;
+            grid-template-columns: 125px minmax(0, 1fr);
+            min-height: 350px;
+        }
+
+        .preview-sidebar {
+            padding: 18px 10px;
+            background: #f5f8fc;
+            border-right: 1px solid var(--border);
+        }
+
+        .preview-sidebar div {
+            padding: 10px 8px;
+            margin-bottom: 5px;
+            border-radius: 7px;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .preview-sidebar .active-item {
+            background: var(--primary);
+            color: white;
+        }
+
+        .preview-main {
+            min-width: 0;
+            padding: 24px;
+        }
+
+        .preview-main h3 {
+            margin-bottom: 5px;
+            color: var(--text);
+            font-size: 18px;
+        }
+
+        .preview-main > p {
+            margin-bottom: 20px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .preview-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .preview-cards div {
+            padding: 14px 10px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: white;
+        }
+
+        .preview-cards small {
+            display: block;
+            margin-bottom: 7px;
+            color: var(--muted);
+            font-size: 9px;
+        }
+
+        .preview-cards strong {
+            color: var(--primary-dark);
+            font-size: 14px;
+        }
+
+        .preview-table {
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .fake-row {
+            height: 26px;
+            margin-top: 9px;
+            border-radius: 5px;
+            background: #f1f5f9;
+        }
+
+        /* =========================
+           SHARED SECTION HEADING
+        ========================= */
+
+        .section-heading {
+            width: 100%;
+            max-width: 680px;
+            margin: 0 auto 55px;
+            text-align: center;
+        }
+
+        .section-heading > span {
+            display: inline-block;
+            margin-bottom: 12px;
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+        }
+
+        .section-heading h2 {
+            margin-bottom: 16px;
+            color: var(--text);
+            font-size: clamp(32px, 4vw, 46px);
+            line-height: 1.12;
+            letter-spacing: -1.5px;
+        }
+
+        .section-heading p {
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        /* =========================
+           FEATURES
+        ========================= */
+
+        .features {
+            width: 100%;
+            padding: 100px 24px;
+            background: white;
+        }
+
+        .features-container {
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            padding: 30px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 5px 18px rgba(13, 71, 161, 0.06);
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .feature-card:hover {
+    transform: translateY(-7px);
+    border-color: rgba(21, 101, 192, 0.28);
+    box-shadow:
+        0 16px 35px rgba(13, 71, 161, 0.12),
+        0 4px 10px rgba(13, 71, 161, 0.05);
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.06);
+}
+
+.feature-icon {
+    transition: transform 0.2s ease;
+}
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 10px;
+            color: var(--text);
+            font-size: 18px;
+        }
+
+        .feature-card p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* =========================
+           HOW IT WORKS
+        ========================= */
+
+        .how-it-works {
+            width: 100%;
+            padding: 100px 24px;
+            background: var(--background);
+        }
+
+        .how-container {
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 18px;
+        }
+
+        .step {
+            position: relative;
+            padding: 28px 22px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 5px 18px rgba(13, 71, 161, 0.05);
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 28px rgba(13, 71, 161, 0.10);
+        }
+
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .step h3 {
+            margin-bottom: 10px;
+            color: var(--text);
+            font-size: 17px;
+        }
+
+        .step p {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        /* =========================
+           ABOUT
+        ========================= */
+
+        .about {
+            width: 100%;
+            padding: 110px 24px;
+            background: white;
+        }
+
+        .about-container {
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            align-items: center;
+            gap: 80px;
+        }
+
+        .about-content {
+            max-width: 620px;
+        }
+
+        .about-label {
+            display: inline-block;
+            margin-bottom: 16px;
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+        }
+
+        .about-content h2 {
+            margin-bottom: 24px;
+            color: var(--text);
+            font-size: clamp(34px, 4vw, 50px);
+            line-height: 1.1;
+            letter-spacing: -1.8px;
+        }
+
+        .about-content h2 span {
+            display: block;
+            color: var(--primary);
+        }
+
+        .about-content p {
+            margin-bottom: 16px;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .about-highlights {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-top: 32px;
+        }
+
+        .about-highlights div {
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--background);
+        }
+
+        .about-highlights strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--primary);
+            font-size: 13px;
+        }
+
+        .about-highlights span {
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* About image */
+
+        .about-visual {
+            position: relative;
+            width: 100%;
+            max-width: 520px;
+            margin-left: auto;
+        }
+
+        .about-image {
+            display: block;
+            width: 100%;
+            height: 560px;
+            object-fit: cover;
+            object-position: center;
+            border-radius: 24px;
+            box-shadow: 0 25px 55px rgba(13, 71, 161, 0.16);
+        }
+
+        .about-image-badge {
+            position: absolute;
+            left: 24px;
+            right: auto;
+            bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 12px 30px rgba(13, 71, 161, 0.16);
+        }
+
+        .about-badge-icon {
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .about-image-badge strong {
+            display: block;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .about-image-badge small {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        /* =========================
+           FINAL CTA
+        ========================= */
+
+        .final-cta {
+            width: 100%;
+            padding: 90px 24px;
+            background: var(--background);
+        }
+
+        .cta-container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 55px 60px;
+            border-radius: 24px;
+            background: linear-gradient(
+                135deg,
+                var(--primary-dark),
+                var(--primary)
+            );
+            color: white;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(13, 71, 161, 0.18);
+        }
+
+        .cta-label {
+            display: inline-block;
+            margin-bottom: 14px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            opacity: 0.8;
+        }
+
+        .cta-container h2 {
+            margin-bottom: 18px;
+            font-size: clamp(32px, 4vw, 48px);
+            line-height: 1.1;
+            letter-spacing: -1.5px;
+        }
+
+        .cta-container h2 span {
+            display: block;
+            opacity: 0.9;
+        }
+
+        .cta-container p {
+            max-width: 620px;
+            margin: 0 auto 28px;
+            font-size: 15px;
+            line-height: 1.7;
+            opacity: 0.85;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .cta-primary,
+        .cta-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 14px 22px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            transition:
+                transform 0.15s ease,
+                opacity 0.15s ease;
+        }
+
+        .cta-primary {
+            background: white;
+            color: var(--primary-dark);
+        }
+
+        .cta-secondary {
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+        }
+
+        .cta-primary:hover,
+        .cta-secondary:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        .footer {
+            width: 100%;
+            display: block;
+            padding: 70px 24px 25px;
+            background: var(--footer);
+            color: white;
+        }
+
+        .footer-container {
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 50px;
+        }
+
+        .footer-brand .brand {
+            color: white;
+            margin-bottom: 18px;
+        }
+
+        .footer-brand p {
+            max-width: 280px;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .footer-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-column h4 {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: white;
+        }
+
+        .footer-column a {
+            color: rgba(255, 255, 255, 0.65);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.15s ease;
+        }
+
+        .footer-column a:hover {
+            color: white;
+        }
+
+        .footer-socials {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .footer-socials a {
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition:
+                background 0.15s ease,
+                transform 0.15s ease;
+        }
+
+        .footer-socials a:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .footer-socials svg {
+            width: 17px;
+            height: 17px;
+            fill: currentColor;
+        }
+
+        .footer-bottom {
+            width: 100%;
+            max-width: 1180px;
+            margin: 55px auto 0;
+            padding-top: 22px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 11px;
+        }
+
+        /* =========================
+           TABLET
+        ========================= */
+
+        @media (max-width: 1000px) {
+
+            .hero-container {
+                gap: 40px;
+            }
+
+            .steps {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 35px;
+            }
+        }
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 700px) {
+
+            .nav-container {
+                padding: 13px 16px;
+            }
+
+            .nav-links {
+                gap: 8px;
+            }
+
+            .nav-links a:not(.nav-login) {
+                display: none;
+            }
+
+            .brand {
+                gap: 8px;
+                font-size: 18px;
+            }
+
+            .brand-mark {
+                width: 34px;
+                height: 34px;
+                border-radius: 10px;
+                font-size: 15px;
+            }
+
+            .nav-login {
+                padding: 9px 13px;
+                border-radius: 8px;
+                font-size: 12px !important;
+            }
+
+            /* Hero */
+
+            .hero-container {
+                width: 100%;
+                max-width: none;
+                min-height: auto;
+                margin: 0;
+                padding: 48px 16px 55px;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 38px;
+            }
+
+            .hero-content {
+                width: 100%;
+                max-width: none;
+            }
+
+            .hero-badge {
+                margin-bottom: 18px;
+                padding: 7px 12px;
+                font-size: 11px;
+            }
+
+            .hero h1 {
+                margin-bottom: 20px;
+                font-size: 38px;
+                line-height: 1.06;
+                letter-spacing: -1.7px;
+            }
+
+            .hero-content > p {
+                max-width: none;
+                margin-bottom: 25px;
+                font-size: 15px;
+                line-height: 1.65;
+            }
+
+            .hero-buttons {
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .primary-button,
+            .secondary-button {
+                width: 100%;
+                min-height: 48px;
+                padding: 13px 18px;
+                font-size: 14px;
+            }
+
+            .hero-points {
+                flex-direction: column;
+                gap: 8px;
+                margin-top: 22px;
+            }
+
+            .hero-points span {
+                font-size: 12px;
+            }
+
+            /* Dashboard */
+
+            .hero-visual {
+                width: 100%;
+                display: block;
+            }
+
+            .dashboard-preview {
+                width: 100%;
+                max-width: none;
+                margin: 0;
+                transform: none;
+                border-radius: 15px;
+            }
+
+            .preview-header {
+                padding: 13px 14px;
+                font-size: 11px;
+            }
+
+            .preview-header span {
+                font-size: 9px;
+            }
+
+            .preview-body {
+                grid-template-columns: 76px minmax(0, 1fr);
+                min-height: 300px;
+            }
+
+            .preview-sidebar {
+                padding: 12px 6px;
+            }
+
+            .preview-sidebar div {
+                padding: 8px 5px;
+                margin-bottom: 4px;
+                font-size: 8px;
+            }
+
+            .preview-main {
+                min-width: 0;
+                padding: 15px;
+            }
+
+            .preview-main h3 {
+                font-size: 14px;
+                line-height: 1.3;
+            }
+
+            .preview-main > p {
+                margin-bottom: 15px;
+                font-size: 9px;
+            }
+
+            .preview-cards {
+                grid-template-columns: 1fr;
+                gap: 7px;
+                margin-bottom: 14px;
+            }
+
+            .preview-cards div {
+                padding: 11px 9px;
+            }
+
+            .preview-cards small {
+                margin-bottom: 4px;
+                font-size: 8px;
+            }
+
+            .preview-cards strong {
+                font-size: 12px;
+            }
+
+            .preview-table {
+                padding: 11px;
+                font-size: 9px;
+            }
+
+            .fake-row {
+                height: 20px;
+                margin-top: 6px;
+            }
+
+            /* Shared headings */
+
+            .section-heading {
+                width: 100%;
+                max-width: none;
+                margin-bottom: 32px;
+            }
+
+            .section-heading > span {
+                margin-bottom: 9px;
+                font-size: 10px;
+                letter-spacing: 1.3px;
+            }
+
+            .section-heading h2 {
+                margin-bottom: 12px;
+                font-size: 30px;
+                line-height: 1.12;
+                letter-spacing: -1px;
+            }
+
+            .section-heading p {
+                font-size: 14px;
+                line-height: 1.65;
+            }
+
+            /* Features */
+
+            .features {
+                width: 100%;
+                padding: 65px 16px;
+            }
+
+            .features-container {
+                width: 100%;
+                max-width: none;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .feature-card {
+                width: 100%;
+                padding: 22px;
+                border-radius: 15px;
+            }
+
+            .feature-icon {
+                width: 44px;
+                height: 44px;
+                margin-bottom: 16px;
+                border-radius: 11px;
+                font-size: 20px;
+            }
+
+            .feature-card h3 {
+                margin-bottom: 8px;
+                font-size: 17px;
+            }
+
+            .feature-card p {
+                font-size: 13px;
+                line-height: 1.65;
+            }
+
+            /* How it works */
+
+            .how-it-works {
+                width: 100%;
+                padding: 65px 16px;
+            }
+
+            .how-container {
+                width: 100%;
+                max-width: none;
+            }
+
+            .steps {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .step {
+                width: 100%;
+                padding: 21px;
+                border-radius: 15px;
+            }
+
+            .step-number {
+                width: 38px;
+                height: 38px;
+                margin-bottom: 17px;
+                border-radius: 10px;
+                font-size: 12px;
+            }
+
+            .step h3 {
+                margin-bottom: 7px;
+                font-size: 16px;
+            }
+
+            .step p {
+                font-size: 13px;
+                line-height: 1.65;
+            }
+
+            /* About */
+
+            .about {
+                width: 100%;
+                padding: 70px 16px;
+            }
+
+            .about-container {
+                width: 100%;
+                max-width: none;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 34px;
+            }
+
+            .about-content {
+                width: 100%;
+                max-width: none;
+            }
+
+            .about-label {
+                margin-bottom: 12px;
+                font-size: 10px;
+            }
+
+            .about-content h2 {
+                margin-bottom: 19px;
+                font-size: 32px;
+                line-height: 1.12;
+                letter-spacing: -1.1px;
+            }
+
+            .about-content p {
+                margin-bottom: 13px;
+                font-size: 14px;
+                line-height: 1.7;
+            }
+
+            .about-highlights {
+                grid-template-columns: 1fr;
+                gap: 9px;
+                margin-top: 23px;
+            }
+
+            .about-highlights div {
+                padding: 14px;
+                border-radius: 11px;
+            }
+
+            .about-highlights strong {
+                margin-bottom: 4px;
+                font-size: 12px;
+            }
+
+            .about-highlights span {
+                font-size: 12px;
+            }
+
+            /* About image */
+
+            .about-visual {
+                width: 100%;
+                max-width: none;
+                margin: 0;
+            }
+
+            .about-image {
+                width: 100%;
+                height: 360px;
+                object-fit: cover;
+                object-position: center;
+                border-radius: 20px;
+            }
+
+            .about-image-badge {
+                left: 13px;
+                right: 13px;
+                bottom: 13px;
+                padding: 12px 13px;
+                border-radius: 13px;
+            }
+
+            .about-badge-icon {
+                width: 34px;
+                height: 34px;
+                border-radius: 9px;
+            }
+
+            .about-image-badge strong {
+                font-size: 12px;
+            }
+
+            .about-image-badge small {
+                margin-top: 2px;
+                font-size: 10px;
+            }
+
+            /* CTA */
+
+            .final-cta {
+                width: 100%;
+                padding: 60px 16px;
+            }
+
+            .cta-container {
+                width: 100%;
+                max-width: none;
+                padding: 38px 21px;
+                border-radius: 18px;
+            }
+
+            .cta-label {
+                margin-bottom: 11px;
+                font-size: 10px;
+            }
+
+            .cta-container h2 {
+                margin-bottom: 14px;
+                font-size: 30px;
+                line-height: 1.12;
+            }
+
+            .cta-container p {
+                margin-bottom: 23px;
+                font-size: 13px;
+                line-height: 1.65;
+            }
+
+            .cta-buttons {
+                width: 100%;
+                flex-direction: column;
+                gap: 9px;
+            }
+
+            .cta-primary,
+            .cta-secondary {
+                width: 100%;
+                min-height: 46px;
+                padding: 13px 18px;
+                font-size: 13px;
+            }
+
+            /* FOOTER
+               Important: footer itself is full width.
+               Padding is kept inside the footer.
+            */
+
+            .footer {
+                width: 100%;
+                padding: 50px 16px 20px;
+                background: var(--footer);
+            }
+
+            .footer-container {
+                width: 100%;
+                max-width: none;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px 18px;
+            }
+
+            .footer-brand {
+                grid-column: 1 / -1;
+            }
+
+            .footer-brand .brand {
+                margin-bottom: 14px;
+            }
+
+            .footer-brand p {
+                max-width: 290px;
+                font-size: 12px;
+                line-height: 1.65;
+            }
+
+            .footer-column {
+                gap: 10px;
+            }
+
+            .footer-column h4 {
+                margin-bottom: 5px;
+                font-size: 12px;
+            }
+
+            .footer-column a {
+                font-size: 11px;
+            }
+
+            .footer-socials {
+                gap: 7px;
+            }
+
+            .footer-socials a {
+                width: 34px;
+                height: 34px;
+                border-radius: 9px;
+            }
+
+            .footer-socials svg {
+                width: 15px;
+                height: 15px;
+            }
+
+            .footer-bottom {
+                width: 100%;
+                max-width: none;
+                margin-top: 35px;
+                padding-top: 18px;
+                flex-direction: column;
+                gap: 6px;
+                font-size: 10px;
+                line-height: 1.5;
+            }
+        }
+
+        /* =========================
+           SMALL PHONES
+        ========================= */
+
+        @media (max-width: 380px) {
+
+            .hero h1 {
+                font-size: 34px;
+            }
+
+            .preview-body {
+                grid-template-columns: 68px minmax(0, 1fr);
+            }
+
+            .preview-sidebar div {
+                font-size: 7px;
+            }
+
+            .preview-main {
+                padding: 12px;
+            }
+
+            .section-heading h2 {
+                font-size: 28px;
+            }
+
+            .about-content h2 {
+                font-size: 29px;
+            }
+
+            .cta-container h2 {
+                font-size: 28px;
+            }
+        }
+        /* =========================
+   FINAL POLISH — REVEAL ANIMATIONS
+========================= */
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-content {
+    animation: fadeUp 0.7s ease-out both;
+}
+
+.hero-visual {
+    animation: fadeUp 0.7s ease-out 0.12s both;
+}
+
+.feature-card {
+    animation: fadeUp 0.6s ease-out both;
+}
+
+.step {
+    animation: fadeUp 0.6s ease-out both;
+}
+
+.about-content {
+    animation: fadeUp 0.7s ease-out both;
+}
+
+.about-visual {
+    animation: fadeUp 0.7s ease-out 0.12s both;
+}
+
+.cta-container {
+    animation: fadeUp 0.7s ease-out both;
+}
+
+/* Respect users who prefer reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+    </style>
+</head>
+
+<body>
+
+    <!-- =========================
+         NAVBAR
+    ========================= -->
+
+    <nav class="navbar">
+        <div class="nav-container">
+
+            <a href="/landing" class="brand">
+                <span class="brand-mark">CF</span>
+                <span>Class Finance</span>
+            </a>
+
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#about">About</a>
+                <a href="/" class="nav-login">Admin Login</a>
+            </div>
+
+        </div>
+    </nav>
+
+
+    <!-- =========================
+         HERO
+    ========================= -->
+
+    <section class="hero">
+
+        <div class="hero-container">
+
+            <div class="hero-content">
+
+                <span class="hero-badge">
+                    Smart&nbsp; • &nbsp;Secure&nbsp; • &nbsp;Reliable
+                </span>
+
+                <h1>
+                    Your Class Finances,
+                    <span>Finally Under Control.</span>
+                </h1>
+
+                <p>
+                    Manage students, track payments, verify receipts,
+                    and generate accurate financial reports — all in one place.
+                </p>
+
+                <div class="hero-buttons">
+
+                    <a href="/" class="primary-button">
+                        Get Started →
+                    </a>
+
+                    <a href="/" class="secondary-button">
+                        Admin Login
+                    </a>
+
+                </div>
+
+                <div class="hero-points">
+                    <span>✓ Easy to use</span>
+                    <span>✓ Secure records</span>
+                    <span>✓ Built for student leaders</span>
+                </div>
+
+            </div>
+
+
+            <div class="hero-visual">
+
+                <div class="dashboard-preview">
+
+                    <div class="preview-header">
+                        <strong>Class Finance</strong>
+                        <span>Admin Dashboard</span>
+                    </div>
+
+                    <div class="preview-body">
+
+                        <div class="preview-sidebar">
+                            <div class="active-item">Dashboard</div>
+                            <div>Students</div>
+                            <div>Payments</div>
+                            <div>Receipts</div>
+                            <div>Reports</div>
+                            <div>AI Assistant</div>
+                        </div>
+
+                        <div class="preview-main">
+
+                            <h3>Welcome back, Class Rep!</h3>
+
+                            <p>
+                                Here's your class financial overview.
+                            </p>
+
+                            <div class="preview-cards">
+
+                                <div>
+                                    <small>Total Collected</small>
+                                    <strong>₦0.00</strong>
+                                </div>
+
+                                <div>
+                                    <small>Students</small>
+                                    <strong>67</strong>
+                                </div>
+
+                                <div>
+                                    <small>Verified</small>
+                                    <strong>0</strong>
+                                </div>
+
+                            </div>
+
+                            <div class="preview-table">
+
+                                <div>Recent Payments</div>
+
+                                <div class="fake-row"></div>
+                                <div class="fake-row"></div>
+                                <div class="fake-row"></div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         FEATURES
+    ========================= -->
+
+    <section class="features" id="features">
+
+        <div class="features-container">
+
+            <div class="section-heading">
+
+                <span>POWERFUL FEATURES</span>
+
+                <h2>
+                    Everything your class needs to manage finances.
+                </h2>
+
+                <p>
+                    Class Finance brings payments, students, receipts and
+                    financial records together in one simple platform.
+                </p>
+
+            </div>
+
+
+            <div class="feature-grid">
+
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+
+                    <h3>Student Management</h3>
+
+                    <p>
+                        Keep your class students, names and matric numbers
+                        organized in one secure place.
+                    </p>
+                </div>
+
+
+                <div class="feature-card">
+                    <div class="feature-icon">💳</div>
+
+                    <h3>Payment Tracking</h3>
+
+                    <p>
+                        Track payments by student, purpose and amount without
+                        relying on messy spreadsheets.
+                    </p>
+                </div>
+
+
+                <div class="feature-card">
+                    <div class="feature-icon">🧾</div>
+
+                    <h3>Receipt Verification</h3>
+
+                    <p>
+                        Upload receipts and verify payment details before they
+                        become part of your official records.
+                    </p>
+                </div>
+
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+
+                    <h3>Financial Reports</h3>
+
+                    <p>
+                        Get clear financial summaries and reports that help you
+                        understand exactly where your class stands.
+                    </p>
+                </div>
+
+
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+
+                    <h3>AI Assistant</h3>
+
+                    <p>
+                        Ask questions about your class finances and get useful
+                        answers directly from your financial records.
+                    </p>
+                </div>
+
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+
+                    <h3>Secure Records</h3>
+
+                    <p>
+                        Keep important financial information organized and
+                        accessible to authorized class administrators.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         HOW IT WORKS
+    ========================= -->
+
+    <section class="how-it-works" id="how-it-works">
+
+        <div class="how-container">
+
+            <div class="section-heading">
+
+                <span>HOW IT WORKS</span>
+
+                <h2>
+                    Simple from payment to report.
+                </h2>
+
+                <p>
+                    Class Finance turns everyday class financial management
+                    into a clear and organized process.
+                </p>
+
+            </div>
+
+
+            <div class="steps">
+
+                <div class="step">
+                    <div class="step-number">01</div>
+
+                    <h3>Add Students</h3>
+
+                    <p>
+                        Add your class students and keep their names and
+                        matric numbers organized.
+                    </p>
+                </div>
+
+
+                <div class="step">
+                    <div class="step-number">02</div>
+
+                    <h3>Record Payments</h3>
+
+                    <p>
+                        Students submit payment details and receipts for
+                        the appropriate class purpose.
+                    </p>
+                </div>
+
+
+                <div class="step">
+                    <div class="step-number">03</div>
+
+                    <h3>Verify Receipts</h3>
+
+                    <p>
+                        Review payment information and verify receipts
+                        before confirming transactions.
+                    </p>
+                </div>
+
+
+                <div class="step">
+                    <div class="step-number">04</div>
+
+                    <h3>Track Finances</h3>
+
+                    <p>
+                        See verified payments, outstanding balances and
+                        class financial activity in one place.
+                    </p>
+                </div>
+
+
+                <div class="step">
+                    <div class="step-number">05</div>
+
+                    <h3>Generate Reports</h3>
+
+                    <p>
+                        Generate useful financial reports and payment lists
+                        whenever your class needs them.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         ABOUT
+    ========================= -->
+
+    <section class="about" id="about">
+
+        <div class="about-container">
+
+            <div class="about-content">
+
+                <span class="about-label">
+                    WHY CLASS FINANCE
+                </span>
+
+                <h2>
+                    Built to make class finances
+                    <span>simple, transparent and accountable.</span>
+                </h2>
+
+                <p>
+                    Managing class money should not mean chasing spreadsheets,
+                    checking screenshots or wondering who has paid.
+                    Class Finance gives student leaders a reliable system for
+                    managing financial records with confidence.
+                </p>
+
+                <p>
+                    From the first payment to the final report, every
+                    transaction can be organized, reviewed and tracked
+                    in one place.
+                </p>
+
+
+                <div class="about-highlights">
+
+                    <div>
+                        <strong>01</strong>
+                        <span>Clear financial records</span>
+                    </div>
+
+                    <div>
+                        <strong>02</strong>
+                        <span>Better accountability</span>
+                    </div>
+
+                    <div>
+                        <strong>03</strong>
+                        <span>Less manual work</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="about-visual">
+
+                <img
+                    src="{{ url_for('static', filename='class-rep.jpg') }}"
+                    alt="Student representative using Class Finance"
+                    class="about-image"
+                >
+
+                <div class="about-image-badge">
+
+                    <span class="about-badge-icon">
+                        ✓
+                    </span>
+
+                    <div>
+                        <strong>Class Finance</strong>
+                        <small>Built for student leaders</small>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         FINAL CTA
+    ========================= -->
+
+    <section class="final-cta">
+
+        <div class="cta-container">
+
+            <span class="cta-label">
+                READY TO TAKE CONTROL?
+            </span>
+
+            <h2>
+                Make your class finances
+                <span>easier to manage.</span>
+            </h2>
+
+            <p>
+                Keep payments organized, verify receipts, and stay on top
+                of your class finances from one reliable platform.
+            </p>
+
+            <div class="cta-buttons">
+
+                <a href="/" class="cta-primary">
+                    Get Started →
+                </a>
+
+                <a href="#features" class="cta-secondary">
+                    Explore Features
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         FOOTER
+    ========================= -->
+
+    <footer class="footer">
+
+        <div class="footer-container">
+
+            <div class="footer-brand">
+
+                <a href="/landing" class="brand">
+
+                    <span class="brand-mark">
+                        CF
+                    </span>
+
+                    <span>
+                        Class Finance
+                    </span>
+
+                </a>
+
+                <p>
+                    Smart financial management for student leaders
+                    and organizations.
+                </p>
+
+            </div>
+
+
+            <div class="footer-column">
+
+                <h4>Quick Links</h4>
+
+                <a href="/landing">Home</a>
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#about">About</a>
+
+            </div>
+
+
+            <div class="footer-column">
+
+                <h4>Support</h4>
+
+                <a href="#">FAQs</a>
+                <a href="#">Contact Us</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+
+            </div>
+
+
+            <div class="footer-column">
+
+                <h4>Stay Connected</h4>
+
+                <div class="footer-socials">
+
+                    <a
+                        href="https://www.linkedin.com/in/akinwale-akinfolarin-b1434a3b8"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="LinkedIn"
+                    >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M6.5 8.5H3V21h3.5V8.5ZM4.75 3A2.05 2.05 0 1 0 4.75 7.1 2.05 2.05 0 0 0 4.75 3ZM21 13.9c0-3.77-2.01-5.53-4.69-5.53-2.16 0-3.13 1.19-3.67 2.03V8.5H9.14V21h3.5v-6.19c0-1.63.31-3.2 2.32-3.2 1.98 0 2 1.86 2 3.31V21H21v-7.1Z"/>
+                        </svg>
+                    </a>
+
+
+                    <a
+                        href="https://x.com/AkinwaleAy80689"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="X"
+                    >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M18.9 2H22l-6.77 7.74L23.2 22h-6.25l-4.9-6.41L6.45 22H3.34l7.24-8.28L2.8 2h6.4l4.43 5.85L18.9 2Zm-1.1 17.8h1.73L8.28 4.1H6.42L17.8 19.8Z"/>
+                        </svg>
+                    </a>
+
+
+                    <a
+                        href="https://wa.me/2347038570411"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="WhatsApp"
+                    >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20.5 3.5A11.9 11.9 0 0 0 12.04 0C5.46 0 .1 5.36.1 11.94c0 2.1.55 4.15 1.59 5.96L0 24l6.25-1.64a11.9 11.9 0 0 0 5.79 1.48h.01c6.58 0 11.94-5.36-3.49-8.4ZM12.05 21.9h-.01a9.9 9.9 0 0 1-5.05-1.38l-.36-.21-3.71.97.99-3.62-.23-.37a9.88 9.88 0 0 1-1.51-5.25C2.17 6.59 6.6 2.16 12.04 2.16c2.64 0 5.12 1.03 6.99 2.9a9.8 9.8 0 0 1 2.9 6.99c0 5.44-4.43 9.85-9.88 9.85Zm5.42-7.39c-.3-.15-1.78-.88-2.06-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.95 1.18-.18.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.74-1.64-2.04-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.68-1.64-.93-2.24-.25-.6-.5-.52-.68-.53h-.58c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.1 3.2 5.09 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.78-.73 2.03-1.44.25-.71.25-1.32.18-1.44-.08-.12-.28-.2-.58-.35Z"/>
+                        </svg>
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            <span>
+                © 2026 Class Finance. All rights reserved.
+            </span>
+
+            <span>
+                Built for better class management.
+            </span>
+
+        </div>
+
+    </footer>
+
+</body>
+</html>

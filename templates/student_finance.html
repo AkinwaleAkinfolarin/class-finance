@@ -18,13 +18,17 @@
     <style>
 
         :root {
-
-            --bg: #f4f7fb;
+            --bg: #f5f8fc;
             --card: #ffffff;
-            --text: #111827;
-            --muted: #6b7280;
-            --border: #e5e7eb;
-            --header: #111827;
+            --text: #172033;
+            --muted: #64748b;
+            --border: #dce5f0;
+            --primary: #1565c0;
+            --primary-dark: #0d47a1;
+            --primary-light: #e3f2fd;
+            --header: #0d47a1;
+            --button: #1565c0;
+            --button-text: #ffffff;
 
         }
 
@@ -51,13 +55,9 @@
 
 
         header {
-
-            background: var(--header);
-
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
             color: white;
-
-            padding: 20px;
-
+            padding: 24px 20px;
         }
 
 
@@ -107,34 +107,31 @@
         }
 
 
-        .student-card {
-
+        .student-.card {
             background: var(--card);
-
             border: 1px solid var(--border);
-
-            border-radius: 14px;
-
-            padding: 25px;
-
+            border-radius: 16px;
+            padding: 28px;
             margin-bottom: 20px;
-
+            box-shadow: 0 4px 14px rgba(13, 71, 161, 0.06);
         }
 
 
         .student-card h2 {
-
             margin-top: 0;
-
-            margin-bottom: 6px;
-
-        }
+            margin-bottom: 8px;
+            color: var(--primary-dark);
+            font-size: 22px;
+            font-weight: 750;
+            letter-spacing: -0.3px;
+        } 
 
 
         .matric {
 
             color: var(--muted);
-
+            font-size: 14px;
+            line-height: 1.7;
         }
 
 

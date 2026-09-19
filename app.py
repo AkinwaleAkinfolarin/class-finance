@@ -21,14 +21,24 @@ import sqlite3
 import cloudinary
 import cloudinary.uploader
 from groq import Groq
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
 from psycopg2 import IntegrityError as PostgreSQLIntegrityError
-
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
 
 # =========================================================
 # APP CONFIGURATION
 # =========================================================
+import time
+from flask import Flask, request, jsonify
+from groq import Groq, RateLimitError
 
 app = Flask(__name__)
+
+# We name this client 'groq_client' to match your setup
 groq_client = Groq()
 
 def get_finance_summary():
@@ -170,7 +180,7 @@ def ask_finance_ai(question):
 
     question_lower = question.lower()
     selected_purpose = None
-
+    
     for purpose in purposes:
         purpose_name = purpose["name"]
         if purpose_name.lower() in question_lower:
@@ -827,26 +837,350 @@ def admin_required():
 
 # MAIN DASHBOARD
 # =========================================================
-
-@app.route("/api/ai", methods=["POST"])
-def ai_assistant():
+@app.route("/export/manual/<path:purpose>")
+def export_manual_excel(purpose):
     if "admin_id" not in session:
         return {"error": "Unauthorized"}, 401
 
+    payment_list = generate_manual_purchase_list(purpose)
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Manual Purchase List"
+
+    sheet.append([
+        "S/N",
+        "Matric Number",
+        "Student Name",
+        "Verified Paid (₦)"
+    ])
+
+    for index, student in enumerate(payment_list, start=1):
+        sheet.append([
+            index,
+            student["matric_number"],
+            student["full_name"],
+            student["verified_paid"]
+        ])
+
+    for cell in sheet[1]:
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal="center")
+
+    sheet.column_dimensions["A"].width = 8
+    sheet.column_dimensions["B"].width = 20
+    sheet.column_dimensions["C"].width = 32
+    sheet.column_dimensions["D"].width = 20
+
+    filename = "manual_purchase_list.xlsx"
+
+    output_path = os.path.join("/tmp", filename)
+    workbook.save(output_path)
+
+    return send_from_directory(
+        "/tmp",
+        filename,
+        as_attachment=True,
+        download_name=filename
+    )
+@app.route("/export/financial-report")
+def export_financial_report_excel():
+    if "admin_id" not in session:
+        return {"error": "Unauthorized"}, 401
+
+    summary = get_finance_summary()
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Financial Report"
+
+    sheet.append(["Class Finance — Financial Report"])
+    sheet.append([])
+
+    sheet.append(["Metric", "Value"])
+
+    sheet.append([
+        "Total Students",
+        summary["total_students"]
+    ])
+
+    sheet.append([
+        "Total Payment Records",
+        summary["total_payments"]
+    ])
+
+    sheet.append([
+        "Verified Amount (₦)",
+        summary["verified_amount"]
+    ])
+
+    sheet.append([
+        "Pending / Review Amount (₦)",
+        summary["pending_amount"]
+    ])
+
+    sheet.append([
+        "Flagged Amount (₦)",
+        summary["flagged_amount"]
+    ])
+
+    sheet["A1"].font = Font(
+        bold=True,
+        size=16
+    )
+
+    for cell in sheet[3]:
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal="center")
+
+    sheet.column_dimensions["A"].width = 32
+    sheet.column_dimensions["B"].width = 24
+
+    filename = "financial_report.xlsx"
+
+    output_path = os.path.join("/tmp", filename)
+    workbook.save(output_path)
+
+    return send_from_directory(
+        "/tmp",
+        filename,
+        as_attachment=True,
+        download_name=filename
+    ) 
+@app.route("/export/financial-report/pdf")
+def export_financial_report_pdf():
+    if "admin_id" not in session:
+        return {"error": "Unauthorized"}, 401
+
+    summary = get_finance_summary()
+
+    filename = "financial_report.pdf"
+    output_path = os.path.join("/tmp", filename)
+
+    document = SimpleDocTemplate(
+        output_path,
+        pagesize=A4,
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=36,
+        bottomMargin=36
+    )
+
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(
+        Paragraph(
+            "Class Finance — Financial Report",
+            styles["Title"]
+        )
+    )
+
+    elements.append(Spacer(1, 12))
+
+    data = [
+        ["Metric", "Value"],
+        ["Total Students", str(summary["total_students"])],
+        ["Total Payment Records", str(summary["total_payments"])],
+        ["Verified Amount (₦)", f'{summary["verified_amount"]:,.2f}'],
+        ["Pending / Review Amount (₦)", f'{summary["pending_amount"]:,.2f}'],
+        ["Flagged Amount (₦)", f'{summary["flagged_amount"]:,.2f}']
+    ]
+
+    table = Table(
+        data,
+        colWidths=[260, 180]
+    )
+
+    table.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1565C0")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("ALIGN", (1, 1), (1, -1), "RIGHT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("TOPPADDING", (0, 0), (-1, -1), 8),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 8)
+        ])
+    )
+
+    elements.append(table)
+
+    document.build(elements)
+
+    return send_from_directory(
+        "/tmp",
+        filename,
+        as_attachment=True,
+        download_name=filename
+    )
+
+@app.route("/export/manual/<path:purpose>/pdf")
+def export_manual_pdf(purpose):
+    if "admin_id" not in session:
+        return {"error": "Unauthorized"}, 401
+
+    payment_list = generate_manual_purchase_list(purpose)
+
+    filename = "manual_purchase_list.pdf"
+    output_path = os.path.join("/tmp", filename)
+
+    document = SimpleDocTemplate(
+        output_path,
+        pagesize=A4,
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=36,
+        bottomMargin=36
+    )
+
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(
+        Paragraph(
+            f"Manual Purchase List — {purpose}",
+            styles["Title"]
+        )
+    )
+
+    elements.append(Spacer(1, 12))
+
+    data = [
+        ["S/N", "Matric Number", "Student Name", "Verified Paid (₦)"]
+    ]
+
+    for index, student in enumerate(payment_list, start=1):
+        data.append([
+            str(index),
+            student["matric_number"],
+            student["full_name"],
+            f'{student["verified_paid"]:,.2f}'
+        ])
+
+    table = Table(
+        data,
+        colWidths=[35, 110, 190, 110]
+    )
+
+    table.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1565C0")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("ALIGN", (0, 0), (0, -1), "CENTER"),
+            ("ALIGN", (3, 1), (3, -1), "RIGHT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+            ("TOPPADDING", (0, 0), (-1, 0), 8),
+        ])
+    )
+
+    elements.append(table)
+
+    document.build(elements)
+
+    return send_from_directory(
+        "/tmp",
+        filename,
+        as_attachment=True,
+        download_name=filename
+    )
+@app.route('/api/ai', methods=['POST'])
+def chat():
     data = request.get_json(silent=True) or {}
+
     question = data.get("question", "").strip()
 
     if not question:
-        return {"error": "Please enter a question."}, 400
+        return jsonify({
+            "error": "Please enter a question."
+        }), 400
 
     try:
         answer = ask_finance_ai(question)
-        return {"answer": answer}
+
+        response_data = {
+            "answer": answer
+        }
+
+        question_lower = question.lower()
+
+        if (
+            "manual purchase" in question_lower
+            or "purchase list" in question_lower
+        ):
+            connection = get_connection()
+
+            purposes = connection.execute(
+                """
+                SELECT name
+                FROM payment_purposes
+                WHERE status = 'Active'
+
+                UNION
+
+                SELECT DISTINCT purpose AS name
+                FROM payments
+                WHERE purpose IS NOT NULL
+                  AND TRIM(purpose) != ''
+                """
+            ).fetchall()
+
+            connection.close()
+
+            selected_purpose = None
+
+            for purpose in purposes:
+                purpose_name = purpose["name"]
+
+                if purpose_name.lower() in question_lower:
+                    selected_purpose = purpose_name
+                    break
+
+            if not selected_purpose:
+                for purpose in purposes:
+                    purpose_name = purpose["name"]
+
+                    if "manual" in purpose_name.lower():
+                        selected_purpose = purpose_name
+                        break
+
+            if selected_purpose:
+                response_data["export_manual_excel_url"] = url_for(
+                    "export_manual_excel",
+                    purpose=selected_purpose
+                )
+
+                response_data["export_manual_pdf_url"] = url_for(
+                    "export_manual_pdf",
+                    purpose=selected_purpose
+                )
+        if (
+            "financial report" in question_lower
+            or "finance report" in question_lower
+            or "financial summary" in question_lower
+            or "generate report" in question_lower
+        ):
+            response_data["export_financial_excel_url"] = url_for(
+                "export_financial_report_excel"
+            )
+
+            response_data["export_financial_pdf_url"] = url_for(
+                "export_financial_report_pdf"
+            )
+        return jsonify(response_data)
+
     except Exception as e:
-        print("AI ERROR:", e)
-        return {"error": "AI Assistant is temporarily unavailable."}, 500
-
-
+        app.logger.exception("AI request failed")
+        return jsonify({
+            "error": str(e)
+        }), 500
 @app.route("/")
 def home():
 
@@ -2194,4 +2528,4 @@ def download_receipt(filename):
 
 if __name__ == "__main__":
 
-        app.run(debug=False)
+        app.run(debug=True)

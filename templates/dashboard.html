@@ -8,15 +8,17 @@
 
     <style>
         :root {
-            --bg: #f4f7fb;
-            --card: #ffffff;
-            --text: #111827;
-            --muted: #6b7280;
-            --border: #e5e7eb;
-            --header: #111827;
-            --button: #111827;
-            --button-text: #ffffff;
-        }
+           --bg: #f5f8fc;
+           --card: #ffffff;
+           --text: #172033;
+           --muted: #64748b;
+           --border: #dce5f0;
+           --primary: #1565c0;
+           --primary-dark: #0d47a1;
+           --primary-light: #e3f2fd;
+           --header: #0d47a1;
+           --button: #1565c0;
+           --button-text: #ffffff;
 
         body.dark {
             --bg: #0f172a;
@@ -24,27 +26,30 @@
             --text: #f8fafc;
             --muted: #94a3b8;
             --border: #334155;
-            --header: #020617;
-            --button: #f8fafc;
-            --button-text: #0f172a;
+            --primary: #42a5f5;
+            --primary-dark: #1565c0;
+            --primary-light: #12345a;
+            --header: #0b1f3a;
+            --button: #42a5f5;
+            --button-text: #07111f;
         }
-
+        
         * {
             box-sizing: border-box;
         }
 
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background: var(--bg);
             color: var(--text);
             transition: background 0.25s, color 0.25s;
         }
 
         .header {
-            background: var(--header);
-            color: white;
-            padding: 24px 20px;
+             background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+             color: white;
+             padding: 24px 20px;
         }
 
         .header-inner {
@@ -61,10 +66,12 @@
             font-size: 24px;
         }
 
-        .brand p {
-            margin: 6px 0 0;
-            color: #cbd5e1;
-            font-size: 14px;
+        .brand h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 750;
+            letter-spacing: -0.4px;
+
         }
 
         .theme-toggle {
@@ -88,38 +95,53 @@
         }
 
         .welcome h2 {
-            margin: 0 0 6px;
+            margin: 0 0 8px;
+           font-size: 22px;
+            font-weight: 750;
+            letter-spacing: -0.3px;
         }
-
         .welcome p {
             margin: 0;
             color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
         }
 
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 18px;
+            gap: 20px;
         }
-
         .card {
             background: var(--card);
             border: 1px solid var(--border);
             padding: 22px;
-            border-radius: 14px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(13, 71, 161, 0.07);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(21, 101, 192, 0.35);
+            box-shadow: 0 8px 22px rgba(13, 71, 161, 0.11);
+        }
+        
 
         .card h3 {
             margin: 0 0 10px;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--muted);
-            font-weight: 500;
+            font-weight: 650;
+            letter-spacing: 0.2px;
         }
 
         .number {
-            font-size: 28px;
-            font-weight: bold;
+            font-size: 30px;
+            font-weight: 750;
+            color: var(--primary-dark);
+            letter-spacing: -0.5px;
+
         }
 
         .menu {
@@ -128,24 +150,30 @@
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 14px;
         }
-
         .menu a {
             background: var(--card);
             border: 1px solid var(--border);
-            padding: 17px;
-            border-radius: 10px;
+            padding: 20px 16px;
+            border-radius: 16px;
             text-decoration: none;
             color: var(--text);
             text-align: center;
-            transition: transform 0.2s, border-color 0.2s;
+            font-weight: 600;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .menu a:hover {
             transform: translateY(-2px);
-            border-color: #64748b;
+            border-color: rgba(21, 101, 192, 0.45);
+            box-shadow: 0 6px 18px rgba(13, 71, 161, 0.09);
         }
 
-                    .ai-assistant {
+        .menu a strong {
+            color: var(--primary-dark);
+            font-size: 14px:
+            letter-spacing: 0.1px;
+        }
+        .ai-assistant {
             margin-top: 30px;
             background: var(--card);
             border: 1px solid var(--border);
@@ -169,11 +197,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+   
             color: white;
             font-size: 25px;
             font-weight: 700;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+            box-shadow: 0 8px 18px rgba(13, 71, 161, 0.20);
         }
 
         .ai-identity {
@@ -227,13 +256,18 @@
         }
 
         .ai-input {
-            display: flex;
-            gap: 10px;
             margin-top: 22px;
             padding: 6px;
             border: 1px solid var(--border);
             border-radius: 14px;
-            background: var(--bg);
+            background: var(--card);
+            box-shadow: 0 4px 14px rgba(13, 71, 161, 0.06);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .ai-input:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
 
         .ai-input input {
@@ -373,7 +407,26 @@
         .ai-table tbody tr:last-child td {
             border-bottom: none;
         }
+        .ai-export-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 16px;
+            border-radius: 10px;
+            background: #1565c0;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(13, 71, 161, 0.12);
+            transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+         }
 
+         .ai-export-button:hover {
+             transform: translateY(-1px);
+             opacity: 0.92;
+             box-shadow: 0 7px 18px rgba(13, 71, 161, 0.16);
+        }
         .ai-response-text {
             margin-top: 14px;
             color: var(--text);
@@ -453,19 +506,29 @@
             margin-top: 30px;
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 22px;
+            box-shadow: 0 4px 14px rgba(13, 71, 161, 0.006);       
         }
 
         .contact h3 {
-            margin-top: 0;
+            margin: 0 0 8px;
+            font-size: 17px;
+            font-weight: 750;
+            color: var(--primary-dark);
         }
+        .contact p {
+            margin: 0 0 16px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+       } 
 
-        .whatsapp {
+       .contact .whatsapp {
             display: inline-block;
             margin-top: 8px;
             padding: 11px 16px;
-            border-radius: 8px;
+            border-radius: 10px;
             background: #22c55e;
             color: white;
             text-decoration: none;
@@ -479,6 +542,7 @@
             text-align: center;
             color: var(--muted);
             font-size: 13px;
+            border-top: 1px solid var(--border);    
         }
 
         @media (max-width: 600px) {
@@ -859,40 +923,110 @@ function formatAIResponse(text) {
 }
 
 function askAI() {
-        const question = document.getElementById("aiQuestion").value.trim();
-        const responseBox = document.getElementById("aiResponse");
-        const responseText = document.getElementById("aiResponseText");
+    const question = document.getElementById("aiQuestion").value.trim();
+    const responseBox = document.getElementById("aiResponse");
+    const responseText = document.getElementById("aiResponseText");
 
-        if (!question) {
-            responseBox.style.display = "block";
-            responseText.textContent = "Please enter a question first.";
-            return;
-        }
-
+    if (!question) {
         responseBox.style.display = "block";
-        responseText.textContent = "Thinking...";
-
-        fetch("/api/ai", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                question: question
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.answer) {
-                responseText.innerHTML = formatAIResponse(data.answer);
-            } else {
-                responseText.textContent =
-                    data.error || "Something went wrong.";
-            }
-        })
-        .catch(() => {
-            responseText.textContent =
-                "Unable to connect to the AI Assistant.";
-        });
+        responseText.textContent = "Please enter a question first.";
+        return;
     }
+
+    responseBox.style.display = "block";
+    responseText.textContent = "Thinking...";
+
+    fetch("/api/ai", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            question: question
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.answer) {
+            responseText.innerHTML = formatAIResponse(data.answer);
+
+            if (
+                data.export_manual_excel_url ||
+                data.export_manual_pdf_url ||
+                data.export_financial_excel_url ||
+                data.export_financial_pdf_url
+            ) {
+                responseText.innerHTML += `
+                    <div style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
+
+                        ${
+                            data.export_manual_excel_url
+                            ? `
+                                <a
+                                    href="${data.export_manual_excel_url}"
+                                    class="ai-export-button"
+                                    download
+                                >
+                                    📊 Download Excel
+                                </a>
+                            `
+                            : ""
+                        }
+
+                        ${
+                            data.export_manual_pdf_url
+                            ? `
+                                <a
+                                    href="${data.export_manual_pdf_url}"
+                                    class="ai-export-button"
+                                    download
+                                >
+                                    📄 Download PDF
+                                </a>
+                            `
+                            : ""
+                        }
+
+                        ${
+                            data.export_financial_excel_url
+                            ? `
+                                <a
+                                    href="${data.export_financial_excel_url}"
+                                    class="ai-export-button"
+                                    download
+                                >
+                                    📊 Financial Report Excel
+                                </a>
+                            `
+                            : ""
+                        }
+
+                        ${
+                            data.export_financial_pdf_url
+                            ? `
+                                <a
+                                    href="${data.export_financial_pdf_url}"
+                                    class="ai-export-button"
+                                    download
+                                >
+                                    📄 Financial Report PDF
+                                </a>
+                            `
+                            : ""
+                        }
+
+                    </div>
+                `;
+            }
+        } else {
+            responseText.textContent =
+                data.error || "Something went wrong.";
+        }
+    })
+    .catch(() => {
+        responseText.textContent =
+            "Unable to connect to the AI Assistant.";
+    });
+}
+
 </script>
