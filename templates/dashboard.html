@@ -107,6 +107,127 @@
             line-height: 1.6;
         }
 
+        .communications {
+            display: grid;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .payment-announcement {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(13, 71, 161, 0.16);
+        }
+
+        .payment-announcement h3 {
+            margin: 0 0 8px;
+            font-size: 19px;
+        }
+
+        .payment-announcement p {
+            margin: 0 0 16px;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        .announcement-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .announcement-meta span {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 7px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+
+        .communication-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+            gap: 18px;
+        }
+
+        .communication-panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 4px 14px rgba(13, 71, 161, 0.06);
+        }
+
+        .communication-panel h3 {
+            margin: 0 0 14px;
+            font-size: 16px;
+        }
+
+        .announcement-item {
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .announcement-item:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .announcement-item strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .announcement-item p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .ad-card {
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .ad-card img {
+            width: 100%;
+            max-height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .ad-content {
+            padding: 18px;
+        }
+
+        .ad-content h4 {
+            margin: 0 0 7px;
+            font-size: 15px;
+        }
+
+        .ad-content p {
+            margin: 0 0 12px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .ad-content a {
+            color: var(--primary);
+            font-weight: 650;
+            text-decoration: none;
+        }
+
+        .communication-empty {
+            color: var(--muted);
+            font-size: 13px;
+            margin: 0;
+        }
+
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -585,6 +706,86 @@
             <p>Monitor class payments, records and outstanding balances.</p>
         </section>
 
+        <section class="communications">
+
+            {% if payment_announcement %}
+            <div class="payment-announcement">
+                <h3>{{ payment_announcement.title }}</h3>
+                <p>{{ payment_announcement.message }}</p>
+
+                <div class="announcement-meta">
+                    {% if payment_announcement.start_date %}
+                    <span>Starts: {{ payment_announcement.start_date }}</span>
+                    {% endif %}
+
+                    {% if payment_announcement.deadline_date %}
+                    <span>Deadline: {{ payment_announcement.deadline_date }}</span>
+                    {% endif %}
+
+                    {% if payment_announcement.payment_purpose %}
+                    <span>{{ payment_announcement.payment_purpose }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="communication-grid">
+
+                <section class="communication-panel">
+                    <h3>Latest Announcements</h3>
+
+                    {% if latest_announcements %}
+                        {% for announcement in latest_announcements %}
+                        <div class="announcement-item">
+                            <strong>{{ announcement.title }}</strong>
+                            <p>{{ announcement.message }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="communication-empty">
+                            No announcements at the moment.
+                        </p>
+                    {% endif %}
+                </section>
+
+                <section class="communication-panel ad-card">
+                    {% if advertisements %}
+                        {% set ad = advertisements[0] %}
+
+                        {% if ad.image_url %}
+                        <img src="{{ ad.image_url }}" alt="{{ ad.title }}">
+                        {% endif %}
+
+                        <div class="ad-content">
+                            <h4>{{ ad.title }}</h4>
+
+                            {% if ad.description %}
+                            <p>{{ ad.description }}</p>
+                            {% endif %}
+
+                            {% if ad.target_url %}
+                            <a href="{{ ad.target_url }}"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                Learn more →
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="ad-content">
+                            <h4>Class Updates</h4>
+                            <p>
+                                Announcements, payment reminders and useful
+                                class information will appear here.
+                            </p>
+                        </div>
+                    {% endif %}
+                </section>
+
+            </div>
+
+        </section>
+
         <section class="cards">
 
             <div class="card">
@@ -690,6 +891,11 @@
             <a href="/finance">
                 💰<br>
                 <strong>Payments</strong>
+            </a>
+
+            <a href="/admin/communications">
+                📢<br>
+                <strong>Announcements & Ads</strong>
             </a>
 
             <a href="#" style="display: none;">

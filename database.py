@@ -119,7 +119,33 @@ def initialize_database():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS announcements (
+            id {id_type},
+            title TEXT NOT NULL,
+            message TEXT NOT NULL,
+            payment_purpose TEXT,
+            start_date TIMESTAMP,
+            deadline_date TIMESTAMP,
+            status TEXT NOT NULL DEFAULT 'Active',
+            priority INTEGER NOT NULL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS advertisements (
+            id {id_type},
+            title TEXT NOT NULL,
+            description TEXT,
+            image_url TEXT,
+            target_url TEXT,
+            start_date TIMESTAMP,
+            end_date TIMESTAMP,
+            status TEXT NOT NULL DEFAULT 'Active',
+            priority INTEGER NOT NULL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     connection.execute(f"""
         CREATE TABLE IF NOT EXISTS admins (
             id {id_type},

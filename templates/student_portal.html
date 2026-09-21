@@ -107,7 +107,111 @@
         .portal-button:hover {
             opacity: 0.9;
         }
+                .news-ticker {
+            background: #0d47a1;
+            color: white;
+            overflow: hidden;
+            white-space: nowrap;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            padding: 11px 0;
+        }
 
+        .news-track {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker-scroll 22s linear infinite;
+        }
+
+        .news-track span {
+            margin-right: 60px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        @keyframes ticker-scroll {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-100%);
+            }
+        }
+
+        .featured-payment {
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            color: white;
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(13, 71, 161, 0.16);
+        }
+
+        .featured-payment h3 {
+            margin: 0 0 8px;
+            font-size: 20px;
+        }
+
+        .featured-payment p {
+            margin: 0 0 16px;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        .announcement-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .announcement-meta span {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 7px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+
+        .student-section {
+            margin-top: 22px;
+        }
+
+        .student-section h3 {
+            margin-bottom: 12px;
+        }
+
+        .announcement-item,
+        .ad-item {
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .announcement-item:last-child,
+        .ad-item:last-child {
+            border-bottom: 0;
+        }
+
+        .announcement-item strong,
+        .ad-item strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .announcement-item p,
+        .ad-item p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .ad-item a {
+            display: inline-block;
+            margin-top: 9px;
+            color: var(--primary);
+            font-weight: 700;
+            text-decoration: none;
+        }
         .info {
             margin-top: 25px;
             padding: 16px 18px;
@@ -118,7 +222,60 @@
             line-height: 1.6;
             font-size: 14px;
         }
-    </style>
+
+.ad-preview-image {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    object-fit: contain;
+    display: block;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    cursor: zoom-in;
+}
+
+.ad-preview-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.88);
+}
+
+.ad-preview-modal.show {
+    display: flex;
+}
+
+.ad-preview-modal-image {
+    max-width: 96vw;
+    max-height: 92vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.ad-preview-close {
+    position: fixed;
+    top: 18px;
+    right: 20px;
+    z-index: 10000;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+</style>
 </head>
 
 <body>
@@ -134,6 +291,65 @@
 </header>
 
 <main>
+
+    <div class="news-ticker">
+        <div class="news-track">
+
+            {% if latest_announcements %}
+                {% for announcement in latest_announcements %}
+                <span>
+                    🔴 LATEST — {{ announcement.title }}
+                    {% if announcement.deadline_date %}
+                    — Deadline: {{ announcement.deadline_date }}
+                    {% endif %}
+                </span>
+                {% endfor %}
+            {% else %}
+                <span>
+                    🔴 LATEST — Welcome to the Class Finance Student Portal
+                </span>
+            {% endif %}
+
+        </div>
+    </div>
+
+
+    {% if payment_announcement %}
+    <section class="featured-payment">
+
+        <h3>
+            🔥 {{ payment_announcement.title }}
+        </h3>
+
+        <p>
+            {{ payment_announcement.message }}
+        </p>
+
+        <div class="announcement-meta">
+
+            {% if payment_announcement.start_date %}
+            <span>
+                🟢 Starts: {{ payment_announcement.start_date }}
+            </span>
+            {% endif %}
+
+            {% if payment_announcement.deadline_date %}
+            <span>
+                ⏳ Deadline: {{ payment_announcement.deadline_date }}
+            </span>
+            {% endif %}
+
+            {% if payment_announcement.payment_purpose %}
+            <span>
+                💳 {{ payment_announcement.payment_purpose }}
+            </span>
+            {% endif %}
+
+        </div>
+
+    </section>
+    {% endif %}
+
 
     <div class="card">
 
@@ -157,15 +373,155 @@
 
         </div>
 
-        <div class="info">
-            🔒 Your payment information is linked to your
-            student record. Only your own payment records
-            should be accessible through the student portal.
+    </div>
+
+
+    {% if latest_announcements %}
+    <section class="student-section card">
+
+        <h3>📢 Latest Class Updates</h3>
+
+        {% for announcement in latest_announcements %}
+
+        <div class="announcement-item">
+
+            <strong>
+                {{ announcement.title }}
+            </strong>
+
+            <p>
+                {{ announcement.message }}
+            </p>
+
         </div>
 
+        {% endfor %}
+
+    </section>
+    {% endif %}
+
+
+    {% if advertisements %}
+    <section class="student-section card">
+
+        <h3>🎯 Opportunities & Class Ads</h3>
+
+        {% for ad in advertisements %}
+
+        <div class="ad-item">
+
+            {% if ad.image_url %}
+            <img
+                src="{{ ad.image_url }}"
+                alt="{{ ad.title }}"
+                class="ad-preview-image"
+                onclick="openAdPreview(this.src, this.alt)"
+            >
+            {% endif %}
+
+            <strong>
+                {{ ad.title }}
+            </strong>
+
+            {% if ad.description %}
+            <p class="ad-description">
+                {{ ad.description }}
+            </p>
+            {% endif %}
+
+            {% if ad.target_url %}
+            <a
+                href="{{ ad.target_url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Learn more →
+            </a>
+            {% endif %}
+
+        </div>
+
+        {% endfor %}
+
+    </section>
+    {% endif %}
+
+
+    <div class="info">
+        🔒 Your payment information is linked to your
+        student record. Only your own payment records
+        should be accessible through the student portal.
     </div>
 
 </main>
+
+<div
+    id="adPreviewModal"
+    class="ad-preview-modal"
+    onclick="closeAdPreview(event)"
+>
+    <button
+        type="button"
+        class="ad-preview-close"
+        onclick="closeAdPreview()"
+        aria-label="Close image preview"
+    >
+        &times;
+    </button>
+
+    <img
+        id="adPreviewImage"
+        class="ad-preview-modal-image"
+        src=""
+        alt=""
+    >
+</div>
+
+<script>
+function openAdPreview(src, alt) {
+    const modal = document.getElementById("adPreviewModal");
+    const image = document.getElementById("adPreviewImage");
+
+    image.src = src;
+    image.alt = alt || "Advertisement preview";
+    modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+
+function closeAdPreview(event) {
+    if (
+        event &&
+        event.target &&
+        event.target.id !== "adPreviewModal"
+    ) {
+        return;
+    }
+
+    const modal = document.getElementById("adPreviewModal");
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+</script>
+
+
+<script>
+document.querySelectorAll(".ad-description").forEach((element) => {
+    const text = element.textContent || "";
+
+    const escaped = text.replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    }[char]));
+
+    element.innerHTML = escaped.replace(
+        /(https?:\/\/[^\s<]+)/g,
+        '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+});
+</script>
 
 </body>
 </html>

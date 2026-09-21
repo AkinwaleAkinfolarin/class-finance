@@ -803,6 +803,211 @@ def admin_login():
     )
 
 
+@app.route("/admin/communications")
+def admin_communications():
+
+    access = admin_required()
+
+    if access:
+        return access
+
+    connection = get_connection()
+
+    announcements = connection.execute(
+        """
+        SELECT
+            id,
+            title,
+            message,
+            payment_purpose,
+            start_date,
+            deadline_date,
+            status,
+            priority,
+            created_at
+        FROM announcements
+        ORDER BY priority DESC, created_at DESC
+        """
+    ).fetchall()
+
+    advertisements = connection.execute(
+        """
+        SELECT
+            id,
+            title,
+            description,
+            image_url,
+            target_url,
+            start_date,
+            end_date,
+            status,
+            priority,
+            created_at
+        FROM advertisements
+        ORDER BY priority DESC, created_at DESC
+        """
+    ).fetchall()
+
+    connection.close()
+
+    return render_template(
+        "admin_communications.html",
+        announcements=announcements,
+        advertisements=advertisements
+    )
+
+
+@app.route("/admin/communications/announcement/add", methods=["POST"])
+def add_announcement():
+
+    access = admin_required()
+
+    if access:
+        return access
+
+    title = request.form.get("title", "").strip()
+    message = request.form.get("message", "").strip()
+    payment_purpose = request.form.get("payment_purpose", "").strip() or None
+    start_date = request.form.get("start_date", "").strip() or None
+    deadline_date = request.form.get("deadline_date", "").strip() or None
+    status = request.form.get("status", "Active").strip()
+    priority_raw = request.form.get("priority", "0").strip()
+
+    try:
+        priority = int(priority_raw)
+    except ValueError:
+        priority = 0
+
+    if not title or not message:
+        return redirect(url_for("admin_communications"))
+
+    connection = get_connection()
+
+    connection.execute(
+        """
+        INSERT INTO announcements (
+            title,
+            message,
+            payment_purpose,
+            start_date,
+            deadline_date,
+            status,
+            priority
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            title,
+            message,
+            payment_purpose,
+            start_date,
+            deadline_date,
+            status,
+            priority
+        )
+    )
+
+    connection.commit()
+    connection.close()
+
+    return redirect(url_for("admin_communications"))
+
+
+@app.route("/admin/communications/advertisement/add", methods=["POST"])
+def add_advertisement():
+
+    access = admin_required()
+
+    if access:
+        return access
+
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    advertisement_image = request.files.get("advertisement_image")
+    target_url = request.form.get("target_url", "").strip() or None
+    start_date = request.form.get("start_date", "").strip() or None
+    end_date = request.form.get("end_date", "").strip() or None
+    status = request.form.get("status", "Active").strip()
+    priority_raw = request.form.get("priority", "0").strip()
+
+    try:
+        priority = int(priority_raw)
+    except ValueError:
+        priority = 0
+
+    if not title:
+        return redirect(url_for("admin_communications"))
+
+    image_url = None
+
+    if advertisement_image and advertisement_image.filename:
+        clean_filename = secure_filename(
+            advertisement_image.filename
+        )
+
+        if not allowed_file(clean_filename):
+            return (
+                "Invalid advertisement image type. "
+                "Only JPG, JPEG, PNG and WEBP are allowed.",
+                400
+            )
+
+        advertisement_path = os.path.join(
+            UPLOAD_FOLDER,
+            f"{uuid.uuid4().hex}_{clean_filename}"
+        )
+
+        os.makedirs(
+            UPLOAD_FOLDER,
+            exist_ok=True
+        )
+
+        advertisement_image.save(advertisement_path)
+
+        cloudinary_result = cloudinary.uploader.upload(
+            advertisement_path,
+            folder="class_finance/advertisements",
+            resource_type="image"
+        )
+
+        image_url = cloudinary_result["secure_url"]
+
+        os.remove(advertisement_path)
+
+    connection = get_connection()
+
+    connection.execute(
+        """
+        INSERT INTO advertisements (
+            title,
+            description,
+            image_url,
+            target_url,
+            start_date,
+            end_date,
+            status,
+            priority
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            title,
+            description,
+            image_url,
+            target_url,
+            start_date,
+            end_date,
+            status,
+            priority
+        )
+    )
+
+    connection.commit()
+    connection.close()
+
+    return redirect(url_for("admin_communications"))
+
+
 @app.route("/admin/logout")
 def admin_logout():
 
@@ -1181,7 +1386,7 @@ def chat():
         return jsonify({
             "error": str(e)
         }), 500
-@app.route("/")
+@app.route("/dashboard")
 def home():
 
     access = admin_required()
@@ -1206,21 +1411,154 @@ def home():
         """
     ).fetchone()["count"]
 
+    payment_announcement = connection.execute(
+        """
+        SELECT
+            id,
+            title,
+            message,
+            payment_purpose,
+            start_date,
+            deadline_date,
+            status,
+            priority,
+            created_at
+        FROM announcements
+        WHERE status = 'Active'
+          AND payment_purpose IS NOT NULL
+        ORDER BY priority DESC, created_at DESC
+        LIMIT 1
+        """
+    ).fetchone()
+
+    latest_announcements = connection.execute(
+        """
+        SELECT
+            id,
+            title,
+            message,
+            payment_purpose,
+            start_date,
+            deadline_date,
+            status,
+            priority,
+            created_at
+        FROM announcements
+        WHERE status = 'Active'
+        ORDER BY priority DESC, created_at DESC
+        LIMIT 5
+        """
+    ).fetchall()
+
+    advertisements = connection.execute(
+        """
+        SELECT
+            id,
+            title,
+            description,
+            image_url,
+            target_url,
+            start_date,
+            end_date,
+            status,
+            priority,
+            created_at
+        FROM advertisements
+        WHERE status = 'Active'
+        ORDER BY priority DESC, created_at DESC
+        LIMIT 3
+        """
+    ).fetchall()
+
     connection.close()
 
     return render_template(
         "dashboard.html",
         total_students=total_students,
-        active_students=active_students
+        active_students=active_students,
+        payment_announcement=payment_announcement,
+        latest_announcements=latest_announcements,
+        advertisements=advertisements
     )
-
+@app.route("/")
+def landing():
+    return render_template("landing.html")
 # =========================================================
 # STUDENTS
 # =========================================================
 
 @app.route("/student")
 def student_portal():
-    return render_template("student_portal.html")
+
+    connection = get_connection()
+
+    payment_announcement = connection.execute(
+        """
+        SELECT
+            id,
+            title,
+            message,
+            payment_purpose,
+            start_date,
+            deadline_date,
+            status,
+            priority,
+            created_at
+        FROM announcements
+        WHERE status = 'Active'
+          AND payment_purpose IS NOT NULL
+        ORDER BY priority DESC, created_at DESC
+        LIMIT 1
+        """
+    ).fetchone()
+
+    latest_announcements = connection.execute(
+        """
+        SELECT
+            id,
+            title,
+            message,
+            payment_purpose,
+            start_date,
+            deadline_date,
+            status,
+            priority,
+            created_at
+        FROM announcements
+        WHERE status = 'Active'
+        ORDER BY priority DESC, created_at DESC
+        LIMIT 5
+        """
+    ).fetchall()
+
+    advertisements = connection.execute(
+        """
+        SELECT
+            id,
+            title,
+            description,
+            image_url,
+            target_url,
+            start_date,
+            end_date,
+            status,
+            priority,
+            created_at
+        FROM advertisements
+        WHERE status = 'Active'
+        ORDER BY priority DESC, created_at DESC
+        LIMIT 3
+        """
+    ).fetchall()
+
+    connection.close()
+
+    return render_template(
+        "student_portal.html",
+        payment_announcement=payment_announcement,
+        latest_announcements=latest_announcements,
+        advertisements=advertisements
+    )
 @app.route(
     "/student/payment",
     methods=["GET", "POST"]

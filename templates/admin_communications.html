@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Announcements & Ads | Class Finance</title>
+
+    <style>
+        :root {
+            --bg: #f5f8fc;
+            --card: #ffffff;
+            --text: #172033;
+            --muted: #64748b;
+            --border: #dce5f0;
+            --primary: #1565c0;
+            --primary-dark: #0d47a1;
+            --primary-light: #e3f2fd;
+            --danger: #dc2626;
+            --success: #16a34a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 24px 20px;
+        }
+
+        .header-inner {
+            max-width: 1100px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 23px;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            opacity: 0.9;
+            font-size: 13px;
+        }
+
+        .back {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: auto;
+            padding: 30px 20px 50px;
+        }
+
+        .top-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .top-actions h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .primary-button {
+            display: inline-block;
+            padding: 11px 16px;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .section {
+            margin-top: 25px;
+        }
+
+        .section-title {
+            margin-bottom: 12px;
+        }
+
+        .items {
+            display: grid;
+            gap: 14px;
+        }
+
+        .item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 14px rgba(13, 71, 161, 0.06);
+        }
+
+        .communication-form {
+            display: grid;
+            gap: 10px;
+        }
+
+        .communication-form label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 4px;
+        }
+
+        .communication-form input,
+        .communication-form textarea,
+        .communication-form select {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #ffffff;
+            color: var(--text);
+            font: inherit;
+            outline: none;
+        }
+
+        .communication-form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .communication-form input:focus,
+        .communication-form textarea:focus,
+        .communication-form select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.10);
+        }
+
+        .communication-form .primary-button {
+            border: 0;
+            cursor: pointer;
+            font: inherit;
+            margin-top: 8px;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .item h3 {
+            margin: 0 0 7px;
+            font-size: 17px;
+        }
+
+        .item p {
+            color: var(--muted);
+            line-height: 1.55;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .badge {
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .badge-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .meta span {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 6px 9px;
+            border-radius: 8px;
+            font-size: 11px;
+        }
+
+        .ad-image {
+            width: 100%;
+            max-height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 14px;
+        }
+
+        .empty {
+            background: var(--card);
+            border: 1px dashed var(--border);
+            border-radius: 14px;
+            padding: 25px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        @media (max-width: 650px) {
+            .header-inner,
+            .top-actions,
+            .item-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .primary-button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="header-inner">
+        <div>
+            <h1>📢 Announcements & Ads</h1>
+            <p>Manage student-facing class communications.</p>
+        </div>
+
+        <a class="back" href="/dashboard">
+            ← Admin Dashboard
+        </a>
+    </div>
+</header>
+
+<main>
+
+    <div class="top-actions">
+        <h2>Communication Center</h2>
+
+        <a class="primary-button" href="/dashboard">
+            Dashboard
+        </a>
+    </div>
+
+        <section class="section">
+
+        <h2 class="section-title">
+            ➕ Create Announcement
+        </h2>
+
+        <form
+            class="item communication-form"
+            method="POST"
+            action="/admin/communications/announcement/add"
+        >
+
+            <label>
+                Title
+            </label>
+
+            <input
+                type="text"
+                name="title"
+                placeholder="e.g. BME 102 Manual Payment"
+                required
+            >
+
+            <label>
+                Message
+            </label>
+
+            <textarea
+                name="message"
+                rows="4"
+                placeholder="Write the announcement students should see..."
+                required
+            ></textarea>
+
+            <label>
+                Payment Purpose
+            </label>
+
+            <input
+                type="text"
+                name="payment_purpose"
+                placeholder="e.g. BME 102 Manual"
+            >
+
+            <label>
+                Commencement Date
+            </label>
+
+            <input
+                type="date"
+                name="start_date"
+            >
+
+            <label>
+                Deadline
+            </label>
+
+            <input
+                type="date"
+                name="deadline_date"
+            >
+
+            <label>
+                Status
+            </label>
+
+            <select name="status">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+
+            <label>
+                Priority
+            </label>
+
+            <input
+                type="number"
+                name="priority"
+                value="0"
+                min="0"
+            >
+
+            <button
+                type="submit"
+                class="primary-button"
+            >
+                📢 Publish Announcement
+            </button>
+
+        </form>
+
+    </section>
+
+
+    <section class="section">
+
+        <h2 class="section-title">
+            🎯 Create Advertisement
+        </h2>
+
+        <form
+            class="item communication-form"
+            method="POST"
+            action="/admin/communications/advertisement/add"
+            enctype="multipart/form-data"
+        >
+
+            <label>
+                Advertisement Title
+            </label>
+
+            <input
+                type="text"
+                name="title"
+                placeholder="e.g. Biomedical Engineering Internship"
+                required
+            >
+
+            <label>
+                Description
+            </label>
+
+            <textarea
+                name="description"
+                rows="4"
+                placeholder="Describe the opportunity or advertisement..."
+            ></textarea>
+
+            <label>
+                Advertisement Image
+            </label>
+
+            <input
+                type="file"
+                name="advertisement_image"
+                accept=".jpg,.jpeg,.png,.webp"
+            >
+
+            <label>
+                Target URL
+            </label>
+
+            <input
+                type="url"
+                name="target_url"
+                placeholder="https://example.com"
+            >
+
+            <label>
+                Start Date
+            </label>
+
+            <input
+                type="date"
+                name="start_date"
+            >
+
+            <label>
+                End Date
+            </label>
+
+            <input
+                type="date"
+                name="end_date"
+            >
+
+            <label>
+                Status
+            </label>
+
+            <select name="status">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+
+            <label>
+                Priority
+            </label>
+
+            <input
+                type="number"
+                name="priority"
+                value="0"
+                min="0"
+            >
+
+            <button
+                type="submit"
+                class="primary-button"
+            >
+                🎯 Publish Advertisement
+            </button>
+
+        </form>
+
+    </section>
+
+    <section class="section">
+
+        <h2 class="section-title">
+            📢 Announcements
+        </h2>
+
+        {% if announcements %}
+
+        <div class="items">
+
+            {% for announcement in announcements %}
+
+            <article class="item">
+
+                <div class="item-header">
+
+                    <div>
+                        <h3>
+                            {{ announcement.title }}
+                        </h3>
+
+                        <p>
+                            {{ announcement.message }}
+                        </p>
+                    </div>
+
+                    {% if announcement.status == "Active" %}
+                    <span class="badge badge-active">
+                        Active
+                    </span>
+                    {% else %}
+                    <span class="badge badge-inactive">
+                        {{ announcement.status }}
+                    </span>
+                    {% endif %}
+
+                </div>
+
+                <div class="meta">
+
+                    {% if announcement.payment_purpose %}
+                    <span>
+                        💳 {{ announcement.payment_purpose }}
+                    </span>
+                    {% endif %}
+
+                    {% if announcement.start_date %}
+                    <span>
+                        🟢 Starts: {{ announcement.start_date }}
+                    </span>
+                    {% endif %}
+
+                    {% if announcement.deadline_date %}
+                    <span>
+                        ⏳ Deadline: {{ announcement.deadline_date }}
+                    </span>
+                    {% endif %}
+
+                    <span>
+                        Priority: {{ announcement.priority }}
+                    </span>
+
+                </div>
+
+            </article>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="empty">
+            No announcements have been created yet.
+        </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <section class="section">
+
+        <h2 class="section-title">
+            🎯 Advertisements & Opportunities
+        </h2>
+
+        {% if advertisements %}
+
+        <div class="items">
+
+            {% for ad in advertisements %}
+
+            <article class="item">
+
+                {% if ad.image_url %}
+                <img
+                    class="ad-image"
+                    src="{{ ad.image_url }}"
+                    alt="{{ ad.title }}"
+                >
+                {% endif %}
+
+                <div class="item-header">
+
+                    <div>
+                        <h3>
+                            {{ ad.title }}
+                        </h3>
+
+                        {% if ad.description %}
+                        <p>
+                            {{ ad.description }}
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    {% if ad.status == "Active" %}
+                    <span class="badge badge-active">
+                        Active
+                    </span>
+                    {% else %}
+                    <span class="badge badge-inactive">
+                        {{ ad.status }}
+                    </span>
+                    {% endif %}
+
+                </div>
+
+                <div class="meta">
+
+                    {% if ad.start_date %}
+                    <span>
+                        🟢 Starts: {{ ad.start_date }}
+                    </span>
+                    {% endif %}
+
+                    {% if ad.end_date %}
+                    <span>
+                        🔴 Ends: {{ ad.end_date }}
+                    </span>
+                    {% endif %}
+
+                    <span>
+                        Priority: {{ ad.priority }}
+                    </span>
+
+                </div>
+
+                {% if ad.target_url %}
+                <div style="margin-top: 12px;">
+                    <a
+                        href="{{ ad.target_url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        🔗 View Advertisement
+                    </a>
+                </div>
+                {% endif %}
+
+            </article>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="empty">
+            No advertisements have been created yet.
+        </div>
+
+        {% endif %}
+
+    </section>
+
+</main>
+
+</body>
+</html>
