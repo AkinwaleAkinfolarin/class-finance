@@ -911,7 +911,154 @@ def add_announcement():
     connection.close()
 
     return redirect(url_for("admin_communications"))
+@app.route("/admin/communications/announcement/edit/<int:announcement_id>", methods=["GET", "POST"])
+def edit_announcement(announcement_id):
 
+    access = admin_required()
+
+    if access:
+        return access
+
+    connection = get_connection()
+
+    if request.method == "POST":
+
+        title = request.form.get("title", "").strip()
+        message = request.form.get("message", "").strip()
+        payment_purpose = request.form.get("payment_purpose", "").strip() or None
+        start_date = request.form.get("start_date", "").strip() or None
+        deadline_date = request.form.get("deadline_date", "").strip() or None
+        status = request.form.get("status", "Active").strip()
+        priority_raw = request.form.get("priority", "0").strip()
+
+        try:
+            priority = int(priority_raw)
+        except ValueError:
+            priority = 0
+
+        connection.execute(
+            """
+            UPDATE announcements
+            SET
+                title = ?,
+                message = ?,
+                payment_purpose = ?,
+                start_date = ?,
+                deadline_date = ?,
+                status = ?,
+                priority = ?
+            WHERE id = ?
+            """,
+            (
+                title,
+                message,
+                payment_purpose,
+                start_date,
+                deadline_date,
+                status,
+                priority,
+                announcement_id
+            )
+        )
+
+        connection.commit()
+        connection.close()
+
+        return redirect(url_for("admin_communications"))
+
+    announcement = connection.execute(
+        """
+        SELECT
+            id,
+            title,
+            message,
+            payment_purpose,
+            start_date,
+            deadline_date,
+            status,
+            priority
+        FROM announcements
+        WHERE id = ?
+        """,
+        (announcement_id,)
+    ).fetchone()
+
+    connection.close()
+
+    if not announcement:
+        return redirect(url_for("admin_communications"))
+
+    return render_template(
+        "edit_announcement.html",
+        announcement=announcement
+    )
+
+
+@app.route("/admin/communications/announcement/toggle/<int:announcement_id>", methods=["POST"])
+def toggle_announcement(announcement_id):
+
+    access = admin_required()
+
+    if access:
+        return access
+
+    connection = get_connection()
+
+    announcement = connection.execute(
+        """
+        SELECT status
+        FROM announcements
+        WHERE id = ?
+        """,
+        (announcement_id,)
+    ).fetchone()
+
+    if announcement:
+
+        new_status = (
+            "Inactive"
+            if announcement["status"] == "Active"
+            else "Active"
+        )
+
+        connection.execute(
+            """
+            UPDATE announcements
+            SET status = ?
+            WHERE id = ?
+            """,
+            (new_status, announcement_id)
+        )
+
+        connection.commit()
+
+    connection.close()
+
+    return redirect(url_for("admin_communications"))
+
+
+@app.route("/admin/communications/announcement/delete/<int:announcement_id>", methods=["POST"])
+def delete_announcement(announcement_id):
+
+    access = admin_required()
+
+    if access:
+        return access
+
+    connection = get_connection()
+
+    connection.execute(
+        """
+        DELETE FROM announcements
+        WHERE id = ?
+        """,
+        (announcement_id,)
+    )
+
+    connection.commit()
+    connection.close()
+
+    return redirect(url_for("admin_communications"))
 
 @app.route("/admin/communications/advertisement/add", methods=["POST"])
 def add_advertisement():
@@ -1007,7 +1154,227 @@ def add_advertisement():
 
     return redirect(url_for("admin_communications"))
 
+@app.route("/admin/communications/advertisement/edit/<int:advertisement_id>", methods=["GET", "POST"])
+def edit_advertisement(advertisement_id):
 
+    access = admin_required()
+
+    if access:
+        return access
+
+    connection = get_connection()
+
+    if request.method == "POST":
+
+        title = request.form.get("title", "").strip()
+        description = request.form.get("description", "").strip()
+        target_url = request.form.get("target_url", "").strip() or None
+        start_date = request.form.get("start_date", "").strip() or None
+        end_date = request.form.get("end_date", "").strip() or None
+        status = request.form.get("status", "Active").strip()
+        priority_raw = request.form.get("priority", "0").strip()
+
+        try:
+            priority = int(priority_raw)
+        except ValueError:
+            priority = 0
+
+        advertisement_image = request.files.get("advertisement_image")
+
+        image_url = None
+
+        if advertisement_image and advertisement_image.filename:
+
+            clean_filename = secure_filename(
+                advertisement_image.filename
+            )
+
+            if not allowed_file(clean_filename):
+                connection.close()
+
+                return (
+                    "Invalid advertisement image type. "
+                    "Only JPG, JPEG, PNG and WEBP are allowed.",
+                    400
+                )
+
+            advertisement_path = os.path.join(
+                UPLOAD_FOLDER,
+                f"{uuid.uuid4().hex}_{clean_filename}"
+            )
+
+            os.makedirs(
+                UPLOAD_FOLDER,
+                exist_ok=True
+            )
+
+            advertisement_image.save(advertisement_path)
+
+            cloudinary_result = cloudinary.uploader.upload(
+                advertisement_path,
+                folder="class_finance/advertisements",
+                resource_type="image"
+            )
+
+            image_url = cloudinary_result["secure_url"]
+
+            os.remove(advertisement_path)
+
+        if image_url:
+
+            connection.execute(
+                """
+                UPDATE advertisements
+                SET
+                    title = ?,
+                    description = ?,
+                    image_url = ?,
+                    target_url = ?,
+                    start_date = ?,
+                    end_date = ?,
+                    status = ?,
+                    priority = ?
+                WHERE id = ?
+                """,
+                (
+                    title,
+                    description,
+                    image_url,
+                    target_url,
+                    start_date,
+                    end_date,
+                    status,
+                    priority,
+                    advertisement_id
+                )
+            )
+
+        else:
+
+            connection.execute(
+                """
+                UPDATE advertisements
+                SET
+                    title = ?,
+                    description = ?,
+                    target_url = ?,
+                    start_date = ?,
+                    end_date = ?,
+                    status = ?,
+                    priority = ?
+                WHERE id = ?
+                """,
+                (
+                    title,
+                    description,
+                    target_url,
+                    start_date,
+                    end_date,
+                    status,
+                    priority,
+                    advertisement_id
+                )
+            )
+
+        connection.commit()
+        connection.close()
+
+        return redirect(url_for("admin_communications"))
+
+    advertisement = connection.execute(
+        """
+        SELECT
+            id,
+            title,
+            description,
+            image_url,
+            target_url,
+            start_date,
+            end_date,
+            status,
+            priority
+        FROM advertisements
+        WHERE id = ?
+        """,
+        (advertisement_id,)
+    ).fetchone()
+
+    connection.close()
+
+    if not advertisement:
+        return redirect(url_for("admin_communications"))
+
+    return render_template(
+        "edit_advertisement.html",
+        advertisement=advertisement
+    )
+
+
+@app.route("/admin/communications/advertisement/toggle/<int:advertisement_id>", methods=["POST"])
+def toggle_advertisement(advertisement_id):
+
+    access = admin_required()
+
+    if access:
+        return access
+
+    connection = get_connection()
+
+    advertisement = connection.execute(
+        """
+        SELECT status
+        FROM advertisements
+        WHERE id = ?
+        """,
+        (advertisement_id,)
+    ).fetchone()
+
+    if advertisement:
+
+        new_status = (
+            "Inactive"
+            if advertisement["status"] == "Active"
+            else "Active"
+        )
+
+        connection.execute(
+            """
+            UPDATE advertisements
+            SET status = ?
+            WHERE id = ?
+            """,
+            (new_status, advertisement_id)
+        )
+
+        connection.commit()
+
+    connection.close()
+
+    return redirect(url_for("admin_communications"))
+
+
+@app.route("/admin/communications/advertisement/delete/<int:advertisement_id>", methods=["POST"])
+def delete_advertisement(advertisement_id):
+
+    access = admin_required()
+
+    if access:
+        return access
+
+    connection = get_connection()
+
+    connection.execute(
+        """
+        DELETE FROM advertisements
+        WHERE id = ?
+        """,
+        (advertisement_id,)
+    )
+
+    connection.commit()
+    connection.close()
+
+    return redirect(url_for("admin_communications"))
 @app.route("/admin/logout")
 def admin_logout():
 
@@ -2314,10 +2681,6 @@ def add_payment():
         # FINAL PAYMENT STATUS
         # =================================================
 
-        # =================================================
-        # FINAL PAYMENT STATUS
-        # =================================================
-
         if ai_verification == "Verified" and not flags:
 
             status = "Verified"
@@ -2398,7 +2761,87 @@ def add_payment():
         students=students
     )
 
+# =========================================================
+# VERIFY PAYMENT
+# =========================================================
 
+@app.route(
+    "/payments/<int:payment_id>/verify",
+    methods=["POST"]
+)
+def verify_payment(payment_id):
+
+    access = admin_required()
+
+    if access:
+        return access
+
+    connection = get_connection()
+
+    payment = connection.execute(
+        """
+        SELECT
+            id,
+            status
+        FROM payments
+        WHERE id = ?
+        """,
+        (payment_id,)
+    ).fetchone()
+
+    if not payment:
+        connection.close()
+
+        return redirect(
+            url_for(
+                "students",
+                message="Payment not found."
+            )
+        )
+
+    if payment["status"] == "Verified":
+        connection.close()
+
+        return redirect(
+            url_for(
+                "students",
+                message="Payment is already verified."
+            )
+        )
+
+    # -----------------------------------------------
+    # Mark payment as officially verified
+    # -----------------------------------------------
+
+    admin_username = session.get(
+        "admin_username",
+        "Admin"
+    )
+
+    connection.execute(
+        """
+        UPDATE payments
+        SET
+            status = 'Verified',
+            verified_by = ?,
+            verified_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (
+            admin_username,
+            payment_id
+        )
+    )
+
+    connection.commit()
+    connection.close()
+
+    return redirect(
+        url_for(
+            "finance_dashboard",
+            message="Payment verified successfully."
+        )
+    )
 # =========================================================
 # FINANCIAL DASHBOARD
 # =========================================================
@@ -2563,6 +3006,30 @@ def finance_dashboard():
         (active_students,)
     ).fetchall()
 
+    # =====================================================
+    # PAYMENT REVIEW LIST
+    # =====================================================
+
+    payments = connection.execute(
+        """
+        SELECT
+            p.id,
+            p.amount,
+            p.purpose,
+            p.payment_date,
+            p.receipt_reference,
+            p.receipt_file,
+            p.status,
+            p.verification_note,
+            p.ai_verification,
+            s.full_name,
+            s.matric_number
+        FROM payments p
+        JOIN students s
+            ON s.id = p.student_id
+        ORDER BY p.payment_date DESC
+        """
+    ).fetchall()
 
     connection.close()
 
@@ -2581,8 +3048,8 @@ def finance_dashboard():
         verified=verified,
 
         flagged=flagged,
-
-        purposes=purposes
+        purposes=purposes,
+        payments=payments,
     )
 
 

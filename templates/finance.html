@@ -722,6 +722,208 @@
     </div>
 
 
+        <!-- =================================================
+         PAYMENT REVIEW
+    ================================================== -->
+
+    <div class="section">
+
+        <div class="section-header">
+
+            <div>
+
+                <h2>
+                    Payment Review
+                </h2>
+
+                <p class="section-description">
+                    Review submitted receipts and verify payments.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Student</th>
+                        <th>Purpose</th>
+                        <th>Amount</th>
+                        <th>Receipt</th>
+                        <th>AI Check</th>
+                        <th>Status</th>
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for payment in payments %}
+
+                    <tr>
+
+                        <td>
+
+                            <strong>
+                                {{ payment["full_name"] }}
+                            </strong>
+
+                            <br>
+
+                            <small>
+                                {{ payment["matric_number"] }}
+                            </small>
+
+                        </td>
+
+
+                        <td>
+                            {{ payment["purpose"] or "—" }}
+                        </td>
+
+
+                        <td class="money">
+
+                            ₦{{ "{:,.2f}".format(
+                                payment["amount"]
+                            ) }}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if payment["receipt_file"] %}
+
+                                <a
+                                    href="{{ payment['receipt_file'] }}"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    View Receipt
+                                </a>
+
+                            {% else %}
+
+                                —
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            {{ payment["ai_verification"] or "—" }}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if payment["status"] == "Verified" %}
+
+                                <span class="badge badge-good">
+                                    ✅ Verified
+                                </span>
+
+                            {% elif payment["status"] == "Review" %}
+
+                                <span class="badge badge-warning">
+                                    Review
+                                </span>
+
+                            {% elif payment["status"] == "Flagged" %}
+
+                                <span class="badge badge-warning">
+                                    Flagged
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge badge-warning">
+                                    Pending
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if payment["status"] != "Verified" %}
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'verify_payment',
+                                        payment_id=payment['id']
+                                    ) }}"
+                                    onsubmit="return confirm(
+                                        'Are you sure you want to verify this payment?'
+                                    );"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        ✅ Verify Payment
+                                    </button>
+
+                                </form>
+
+                            {% else %}
+
+                                <span class="badge badge-good">
+                                    Verified
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="7"
+                            class="empty"
+                        >
+
+                            <div class="empty-icon">
+                                💳
+                            </div>
+
+                            No payments have been recorded yet.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
     <!-- =================================================
          FOOTER
     ================================================== -->
