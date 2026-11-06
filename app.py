@@ -16,6 +16,7 @@ from PIL import Image
 import pytesseract
 import os
 import re
+import math
 import uuid
 import sqlite3
 import cloudinary
@@ -1965,6 +1966,26 @@ def student_payment():
             ""
         ).strip()
 
+        # Validate against official active payment purposes
+        selected_purpose = connection.execute(
+            """
+            SELECT name, expected_amount
+            FROM payment_purposes
+            WHERE name = ?
+              AND status = 'Active'
+            """,
+            (purpose,)
+        ).fetchone()
+
+        if not selected_purpose:
+            connection.close()
+            return (
+                "Invalid payment purpose. Please select an official active purpose.",
+                400
+            )
+
+        purpose = selected_purpose["name"]
+
         receipt_reference = request.form.get(
             "receipt_reference",
             ""
@@ -2010,7 +2031,7 @@ def student_payment():
 
             amount_value = float(amount)
 
-            if amount_value <= 0:
+            if not math.isfinite(amount_value) or amount_value <= 0:
 
                 connection.close()
 
@@ -2153,17 +2174,19 @@ def student_payment():
                 + verification_note
             )
 
-        elif ai_verification == "Verified":
-
-            status = "Verified"
-
         elif ai_verification == "Review":
 
             status = "Review"
 
-        else:
+        elif ai_verification == "Flagged":
 
             status = "Flagged"
+
+        else:
+
+            # AI/OCR cannot approve payments.
+            # Even an AI result of Verified requires admin approval.
+            status = "Pending"
 
         # ================================================
         # SAVE PAYMENT
@@ -2681,24 +2704,17 @@ def add_payment():
         # FINAL PAYMENT STATUS
         # =================================================
 
-        if ai_verification == "Verified" and not flags:
+        if flags or ai_verification == "Flagged":
 
-            status = "Verified"
+            status = "Flagged"
 
         elif ai_verification == "Review":
 
             status = "Review"
 
-        elif ai_verification == "Flagged":
-
-            status = "Flagged"
-
-        elif flags:
-
-            status = "Flagged"
-
         else:
 
+            # Admin-added records also require explicit verification.
             status = "Pending"
 
         # =================================================
@@ -2868,6 +2884,7 @@ def finance_dashboard():
             0
         ) AS total_received
         FROM payments
+        WHERE status = 'Verified'
         """
     ).fetchone()["total_received"]
 
@@ -2932,7 +2949,7 @@ def finance_dashboard():
             0
         ) AS pending
         FROM payments
-        WHERE status = 'Pending'
+        WHERE status IN ('Pending', 'Review')
         """
     ).fetchone()["pending"]
 
@@ -2992,7 +3009,15 @@ def finance_dashboard():
                         p.amount
                     )
                     FROM payments p
-                    WHERE p.purpose = pp.name
+                    WHERE p.status = 'Verified'
+                      AND (
+                          p.purpose = pp.name
+                          OR p.purpose IN (
+                              SELECT alias_name
+                              FROM payment_purpose_aliases
+                              WHERE purpose_id = pp.id
+                          )
+                      )
                 ),
                 0
             ) AS received_total
@@ -3070,90 +3095,257 @@ def payment_purposes():
 
     connection = get_connection()
 
-
     if request.method == "POST":
 
-        name = request.form.get(
-            "name",
-            ""
-        ).strip()
+        action = request.form.get("action", "add").strip()
 
-        expected_amount = request.form.get(
-            "expected_amount",
-            ""
-        ).strip()
+        try:
 
+            # -------------------------------------------
+            # ADD PURPOSE
+            # -------------------------------------------
 
-        # -----------------------------------------------
-        # VALIDATE PURPOSE
-        # -----------------------------------------------
+            if action == "add":
 
-        if not name:
+                name = request.form.get("name", "").strip()
+                expected_amount = request.form.get(
+                    "expected_amount", ""
+                ).strip()
 
+                amount = float(expected_amount)
+
+                if not name:
+                    raise ValueError("Payment purpose is required.")
+
+                if not amount > 0 or amount == float("inf"):
+                    raise ValueError(
+                        "Expected amount must be greater than zero."
+                    )
+
+                alias_conflict = connection.execute(
+                    """
+                    SELECT purpose_id
+                    FROM payment_purpose_aliases
+                    WHERE alias_name = ?
+                    """,
+                    (name,)
+                ).fetchone()
+
+                if alias_conflict:
+                    raise ValueError(
+                        "This name is reserved by an existing purpose's history."
+                    )
+
+                connection.execute(
+                    """
+                    INSERT INTO payment_purposes (
+                        name,
+                        expected_amount
+                    )
+                    VALUES (?, ?)
+                    """,
+                    (name, amount)
+                )
+
+                purpose = connection.execute(
+                    """
+                    SELECT id
+                    FROM payment_purposes
+                    WHERE name = ?
+                    """,
+                    (name,)
+                ).fetchone()
+
+                connection.execute(
+                    """
+                    INSERT INTO payment_purpose_aliases (
+                        purpose_id,
+                        alias_name
+                    )
+                    VALUES (?, ?)
+                    ON CONFLICT (alias_name) DO NOTHING
+                    """,
+                    (purpose["id"], name)
+                )
+
+                connection.commit()
+
+                flash(
+                    "Payment purpose added successfully.",
+                    "success"
+                )
+
+            # -------------------------------------------
+            # EDIT PURPOSE
+            # -------------------------------------------
+
+            elif action == "edit":
+
+                purpose_id = request.form.get("purpose_id", "").strip()
+                name = request.form.get("name", "").strip()
+                expected_amount = request.form.get(
+                    "expected_amount", ""
+                ).strip()
+
+                if not purpose_id.isdigit():
+                    raise ValueError("Invalid payment purpose.")
+
+                if not name:
+                    raise ValueError("Payment purpose is required.")
+
+                amount = float(expected_amount)
+
+                if not amount > 0 or amount == float("inf"):
+                    raise ValueError(
+                        "Expected amount must be greater than zero."
+                    )
+
+                existing = connection.execute(
+                    """
+                    SELECT id, name
+                    FROM payment_purposes
+                    WHERE id = ?
+                    """,
+                    (int(purpose_id),)
+                ).fetchone()
+
+                if not existing:
+                    raise ValueError("Payment purpose not found.")
+
+                alias_conflict = connection.execute(
+                    """
+                    SELECT purpose_id
+                    FROM payment_purpose_aliases
+                    WHERE alias_name = ?
+                      AND purpose_id != ?
+                    """,
+                    (name, int(purpose_id))
+                ).fetchone()
+
+                if alias_conflict:
+                    raise ValueError(
+                        "That name belongs to another purpose's history."
+                    )
+
+                duplicate = connection.execute(
+                    """
+                    SELECT id
+                    FROM payment_purposes
+                    WHERE name = ?
+                      AND id != ?
+                    """,
+                    (name, int(purpose_id))
+                ).fetchone()
+
+                if duplicate:
+                    raise ValueError(
+                        "Another payment purpose already uses that name."
+                    )
+
+                # Preserve the old name before changing it.
+                connection.execute(
+                    """
+                    INSERT INTO payment_purpose_aliases (
+                        purpose_id,
+                        alias_name
+                    )
+                    VALUES (?, ?)
+                    ON CONFLICT (alias_name) DO NOTHING
+                    """,
+                    (int(purpose_id), existing["name"])
+                )
+
+                connection.execute(
+                    """
+                    UPDATE payment_purposes
+                    SET
+                        name = ?,
+                        expected_amount = ?
+                    WHERE id = ?
+                    """,
+                    (name, amount, int(purpose_id))
+                )
+
+                # Register the new name as well.
+                connection.execute(
+                    """
+                    INSERT INTO payment_purpose_aliases (
+                        purpose_id,
+                        alias_name
+                    )
+                    VALUES (?, ?)
+                    ON CONFLICT (alias_name) DO NOTHING
+                    """,
+                    (int(purpose_id), name)
+                )
+
+                connection.commit()
+
+                flash(
+                    "Payment purpose updated. Historical payment records were preserved.",
+                    "success"
+                )
+
+            # -------------------------------------------
+            # ACTIVATE / DEACTIVATE
+            # -------------------------------------------
+
+            elif action == "toggle":
+
+                purpose_id = request.form.get("purpose_id", "").strip()
+
+                if not purpose_id.isdigit():
+                    raise ValueError("Invalid payment purpose.")
+
+                existing = connection.execute(
+                    """
+                    SELECT id, name, status
+                    FROM payment_purposes
+                    WHERE id = ?
+                    """,
+                    (int(purpose_id),)
+                ).fetchone()
+
+                if not existing:
+                    raise ValueError("Payment purpose not found.")
+
+                new_status = (
+                    "Inactive"
+                    if existing["status"] == "Active"
+                    else "Active"
+                )
+
+                connection.execute(
+                    """
+                    UPDATE payment_purposes
+                    SET status = ?
+                    WHERE id = ?
+                    """,
+                    (new_status, int(purpose_id))
+                )
+
+                connection.commit()
+
+                flash(
+                    f"{existing['name']} is now {new_status.lower()}.",
+                    "success"
+                )
+
+            else:
+                raise ValueError("Invalid management action.")
+
+        except (ValueError, TypeError) as error:
+
+            connection.rollback()
+            flash(str(error), "error")
+
+        except Exception:
+
+            connection.rollback()
             flash(
-                "Payment purpose is required.",
+                "The operation could not be completed. Please check the purpose and try again.",
                 "error"
             )
-
-        else:
-
-            try:
-
-                amount = float(
-                    expected_amount
-                )
-
-                if amount <= 0:
-
-                    flash(
-                        "Expected amount must be greater than zero.",
-                        "error"
-                    )
-
-                else:
-
-                    connection.execute(
-                        """
-                        INSERT INTO payment_purposes (
-                            name,
-                            expected_amount
-                        )
-                        VALUES (?, ?)
-                        """,
-                        (
-                            name,
-                            amount
-                        )
-                    )
-
-                    connection.commit()
-
-                    flash(
-                        "Payment purpose added successfully.",
-                        "success"
-                    )
-
-            except (
-                ValueError,
-                TypeError
-            ):
-
-                flash(
-                    "Enter a valid expected amount.",
-                    "error"
-                )
-
-            except Exception:
-
-                flash(
-                    "That payment purpose already exists.",
-                    "error"
-                )
-
-
-    # =====================================================
-    # LOAD PURPOSES
-    # =====================================================
 
     purposes = connection.execute(
         """
@@ -3163,17 +3355,14 @@ def payment_purposes():
         """
     ).fetchall()
 
-
     connection.close()
-
 
     return render_template(
         "payment_purposes.html",
         purposes=purposes
-)
+    )
 
 
-# =========================================================
 # STUDENT FINANCIAL RECORD
 # =========================================================
 

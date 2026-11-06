@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Edit Announcement | Class Finance</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+            background: #0b1120;
+            color: #f8fafc;
+        }
+
+        .page {
+            min-height: 100vh;
+            padding: 30px 18px 50px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+        }
+
+        .brand span {
+            color: #60a5fa;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 14px;
+            border: 1px solid #263247;
+            border-radius: 10px;
+            color: #cbd5e1;
+            text-decoration: none;
+            background: #111827;
+            transition: 0.2s ease;
+        }
+
+        .back-link:hover {
+            background: #172033;
+            color: #ffffff;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0 0 8px;
+            font-size: 30px;
+            letter-spacing: -0.7px;
+        }
+
+        .header p {
+            margin: 0;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #cbd5e1;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 12px 13px;
+            font: inherit;
+            outline: none;
+            transition: 0.2s ease;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.12);
+        }
+
+        textarea {
+            min-height: 220px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .divider {
+            height: 1px;
+            background: #1f2937;
+            margin: 24px 0;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 10px 17px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            font: inherit;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: #1e293b;
+            border-color: #334155;
+            color: #cbd5e1;
+        }
+
+        .btn-secondary:hover {
+            background: #273449;
+            color: #ffffff;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .status-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        @media (max-width: 650px) {
+
+            .page {
+                padding: 20px 12px 40px;
+            }
+
+            .topbar {
+                align-items: flex-start;
+            }
+
+            .brand {
+                font-size: 19px;
+            }
+
+            .header h1 {
+                font-size: 25px;
+            }
+
+            .card {
+                padding: 18px;
+                border-radius: 14px;
+            }
+
+            .form-grid,
+            .status-row {
+                grid-template-columns: 1fr;
+            }
+
+            .field.full {
+                grid-column: auto;
+            }
+
+            .actions {
+                flex-direction: column-reverse;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="page">
+
+    <div class="container">
+
+        <div class="topbar">
+
+            <div class="brand">
+                Class <span>Finance</span>
+            </div>
+
+            <a
+                href="{{ url_for('admin_communications') }}"
+                class="back-link"
+            >
+                ← Communications
+            </a>
+
+        </div>
+
+
+        <div class="header">
+
+            <h1>
+                ✏️ Edit Announcement
+            </h1>
+
+            <p>
+                Update the announcement details displayed to your class.
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <form
+                method="POST"
+                action="{{ url_for(
+                    'edit_announcement',
+                    announcement_id=announcement.id
+                ) }}"
+            >
+
+                <div class="form-grid">
+
+                    <div class="field full">
+
+                        <label for="title">
+                            Announcement Title
+                        </label>
+
+                        <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            value="{{ announcement.title }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field full">
+
+                        <label for="message">
+                            Announcement Message
+                        </label>
+
+                        <textarea
+                            id="message"
+                            name="message"
+                            required
+                        >{{ announcement.message }}</textarea>
+
+                        <div class="hint">
+                            This is the main message students will see.
+                        </div>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="payment_purpose">
+                            Payment Purpose
+                        </label>
+
+                        <input
+                            type="text"
+                            id="payment_purpose"
+                            name="payment_purpose"
+                            value="{{ announcement.payment_purpose or '' }}"
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="priority">
+                            Priority
+                        </label>
+
+                        <input
+                            type="number"
+                            id="priority"
+                            name="priority"
+                            value="{{ announcement.priority }}"
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="start_date">
+                            Start Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="start_date"
+                            name="start_date"
+                            value="{{ announcement.start_date or '' }}"
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label for="deadline_date">
+                            Deadline Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="deadline_date"
+                            name="deadline_date"
+                            value="{{ announcement.deadline_date or '' }}"
+                        >
+
+                    </div>
+
+
+                    <div class="field full">
+
+                        <label for="status">
+                            Status
+                        </label>
+
+                        <select
+                            id="status"
+                            name="status"
+                        >
+
+                            <option
+                                value="Active"
+                                {% if announcement.status == "Active" %}
+                                selected
+                                {% endif %}
+                            >
+                                Active
+                            </option>
+
+                            <option
+                                value="Inactive"
+                                {% if announcement.status == "Inactive" %}
+                                selected
+                                {% endif %}
+                            >
+                                Inactive
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <div class="divider"></div>
+
+
+                <div class="actions">
+
+                    <a
+                        href="{{ url_for('admin_communications') }}"
+                        class="btn btn-secondary"
+                    >
+                        Cancel
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        💾 Save Changes
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

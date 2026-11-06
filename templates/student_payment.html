@@ -229,14 +229,25 @@
                 placeholder="Enter your registered full name"
                 required
             >
-             <label for="purpose">Payment Purpose *</label>
-             <input
-                type="text"
+            <label for="purpose">Payment Purpose *</label>
+
+            <select
                 id="purpose"
                 name="purpose"
-                placeholder="e.g. BME 102 Manual"
                 required
-             >
+            >
+                <option value="">Select an official payment purpose</option>
+
+                {% for purpose in purposes %}
+                <option value="{{ purpose['name'] }}">
+                    {{ purpose['name'] }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <span class="help">
+                Select the exact payment purpose announced by your class representative.
+            </span>
              <label for="amount">Amount Paid *</label>
              <input
                 type="number"

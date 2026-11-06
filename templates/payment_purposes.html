@@ -219,6 +219,62 @@
             color: var(--muted);
         }
 
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .action-btn {
+            display: inline-block;
+            padding: 8px 11px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: var(--card);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .edit-btn {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .toggle-btn {
+            color: var(--success-text);
+            border-color: var(--success-text);
+        }
+
+        .inactive {
+            background: var(--error-bg);
+            color: var(--error-text);
+        }
+
+        .edit-panel {
+            min-width: 230px;
+            margin-top: 10px;
+        }
+
+        .edit-panel summary {
+            cursor: pointer;
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .edit-panel input {
+            width: 100%;
+            padding: 9px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+        }
+
         @media (max-width: 700px) {
 
             body {
@@ -309,6 +365,8 @@
 
             <form method="POST">
 
+                <input type="hidden" name="action" value="add">
+
                 <div class="form-grid">
 
                     <div class="field">
@@ -379,19 +437,13 @@
                 <table>
 
                     <thead>
-
                         <tr>
-
                             <th>Purpose</th>
-
                             <th>Expected Amount</th>
-
                             <th>Status</th>
-
+                            <th>Actions</th>
                         </tr>
-
                     </thead>
-
 
                     <tbody>
 
@@ -400,22 +452,80 @@
                         <tr>
 
                             <td>
-                                <strong>
-                                    {{ purpose.name }}
-                                </strong>
+                                <strong>{{ purpose.name }}</strong>
                             </td>
 
                             <td>
-                                ₦{{ "{:,.2f}".format(
-                                    purpose.expected_amount
-                                ) }}
+                                ₦{{ "{:,.2f}".format(purpose.expected_amount) }}
                             </td>
 
                             <td>
-
-                                <span class="status">
+                                <span class="status {% if purpose.status != 'Active' %}inactive{% endif %}">
                                     {{ purpose.status }}
                                 </span>
+                            </td>
+
+                            <td>
+
+                                <div class="actions">
+
+                                    <form method="POST">
+                                        <input type="hidden" name="action" value="toggle">
+                                        <input type="hidden" name="purpose_id" value="{{ purpose.id }}">
+
+                                        <button
+                                            type="submit"
+                                            class="action-btn toggle-btn"
+                                        >
+                                            {% if purpose.status == 'Active' %}
+                                                Deactivate
+                                            {% else %}
+                                                Activate
+                                            {% endif %}
+                                        </button>
+                                    </form>
+
+                                    <details class="edit-panel">
+
+                                        <summary>Edit purpose</summary>
+
+                                        <form method="POST">
+
+                                            <input type="hidden" name="action" value="edit">
+                                            <input type="hidden" name="purpose_id" value="{{ purpose.id }}">
+
+                                            <label>Purpose name</label>
+
+                                            <input
+                                                type="text"
+                                                name="name"
+                                                value="{{ purpose.name }}"
+                                                required
+                                            >
+
+                                            <label>Expected amount (₦)</label>
+
+                                            <input
+                                                type="number"
+                                                name="expected_amount"
+                                                value="{{ purpose.expected_amount }}"
+                                                min="0.01"
+                                                step="0.01"
+                                                required
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="submit-btn"
+                                            >
+                                                Save Changes
+                                            </button>
+
+                                        </form>
+
+                                    </details>
+
+                                </div>
 
                             </td>
 
@@ -424,14 +534,9 @@
                         {% else %}
 
                         <tr>
-
-                            <td
-                                colspan="3"
-                                class="empty"
-                            >
+                            <td colspan="4" class="empty">
                                 No payment purposes yet.
                             </td>
-
                         </tr>
 
                         {% endfor %}

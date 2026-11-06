@@ -119,6 +119,31 @@ def initialize_database():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    # Preserve historical names when an admin renames a purpose.
+    connection.execute(f"""
+        CREATE TABLE IF NOT EXISTS payment_purpose_aliases (
+            id {id_type},
+            purpose_id INTEGER NOT NULL,
+            alias_name TEXT NOT NULL UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (purpose_id)
+                REFERENCES payment_purposes(id)
+        )
+    """)
+
+    # Register every existing purpose name without changing payments.
+    connection.execute("""
+        INSERT INTO payment_purpose_aliases (
+            purpose_id,
+            alias_name
+        )
+        SELECT id, name
+        FROM payment_purposes
+        WHERE 1
+        ON CONFLICT (alias_name) DO NOTHING
+    """)
     connection.execute(f"""
         CREATE TABLE IF NOT EXISTS announcements (
             id {id_type},
