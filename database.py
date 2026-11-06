@@ -141,7 +141,7 @@ def initialize_database():
         )
         SELECT id, name
         FROM payment_purposes
-        WHERE 1
+        WHERE TRUE
         ON CONFLICT (alias_name) DO NOTHING
     """)
     connection.execute(f"""
