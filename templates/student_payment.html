@@ -201,6 +201,7 @@
         </p>
 
         <form
+            id="paymentForm"
             method="POST"
             action="/student/payment"
             enctype="multipart/form-data"
@@ -291,7 +292,21 @@
                 matches the receipt.
             </div>
 
-            <button type="submit">
+            <div
+                id="uploadStatus"
+                role="status"
+                aria-live="polite"
+                style="display:{{ 'block' if error_message else 'none' }};
+                       margin-top:20px; padding:14px; border-radius:8px;
+                       background:{{ '#ffebee' if error_message else '#e3f2fd' }};
+                       color:{{ '#b71c1c' if error_message else '#0d47a1' }};
+                       line-height:1.5;"
+            >
+                {{ error_message if error_message else
+                   'Uploading receipt... Please wait. Do not submit again.' }}
+            </div>
+
+            <button type="submit" id="submitPaymentButton">
                 Submit Payment Receipt
             </button>
 
@@ -300,6 +315,31 @@
     </div>
 
 </main>
+
+<script>
+    const paymentForm = document.getElementById("paymentForm");
+    const submitButton = document.getElementById("submitPaymentButton");
+    const uploadStatus = document.getElementById("uploadStatus");
+
+    let submissionStarted = false;
+
+    paymentForm.addEventListener("submit", function (event) {
+        if (submissionStarted) {
+            event.preventDefault();
+            return;
+        }
+
+        submissionStarted = true;
+        submitButton.disabled = true;
+        submitButton.textContent = "Uploading Receipt...";
+        submitButton.style.opacity = "0.65";
+        submitButton.style.cursor = "not-allowed";
+
+        uploadStatus.style.display = "block";
+        uploadStatus.textContent =
+            "Uploading receipt... Please wait. Do not submit again.";
+    });
+</script>
 
 </body>
 </html>

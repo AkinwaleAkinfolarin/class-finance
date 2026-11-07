@@ -2099,145 +2099,213 @@ def student_payment():
             receipt_filename
         )
 
-        receipt.save(receipt_path)
+        commit_started = False
+        commit_completed = False
 
-        # ================================================
-        # UPLOAD RECEIPT TO CLOUDINARY
-        # ================================================
+        try:
+            receipt.save(receipt_path)
 
-        cloudinary_result = cloudinary.uploader.upload(
-            receipt_path,
-            folder="class_finance/receipts",
-            resource_type="auto"
-        )
+            # ================================================
+            # UPLOAD RECEIPT TO CLOUDINARY
+            # ================================================
 
-        receipt_filename = cloudinary_result["secure_url"]
+            cloudinary_result = cloudinary.uploader.upload(
+                receipt_path,
+                folder="class_finance/receipts",
+                resource_type="auto"
+            )
 
-        # ================================================
-        # OCR
-        # ================================================
+            receipt_filename = cloudinary_result["secure_url"]
 
-        ocr_text = extract_receipt_ocr(
-            receipt_path
-        )
+            # ================================================
+            # OCR
+            # ================================================
 
-        ocr_fields = extract_receipt_fields(
-            ocr_text
-        )
+            ocr_text = extract_receipt_ocr(
+                receipt_path
+            )
 
-        # ================================================
-        # PAYMENT VERIFICATION
-        # ================================================
+            ocr_fields = extract_receipt_fields(
+                ocr_text
+            )
 
-        verification_result = verify_payment_with_ocr(
-            submitted_amount=amount_value,
-            student_name=student["full_name"],
-            purpose=purpose,
-            ocr_fields=ocr_fields
-        )
+            # ================================================
+            # PAYMENT VERIFICATION
+            # ================================================
 
-        ai_verification = verification_result[
-            "verification"
-        ]
+            verification_result = verify_payment_with_ocr(
+                submitted_amount=amount_value,
+                student_name=student["full_name"],
+                purpose=purpose,
+                ocr_fields=ocr_fields
+            )
 
-        verification_note = verification_result[
-            "note"
-        ]
+            ai_verification = verification_result[
+                "verification"
+            ]
 
-        # ================================================
-        # CHECK DUPLICATE REFERENCE
-        # ================================================
+            verification_note = verification_result[
+                "note"
+            ]
 
-        duplicate = None
+            # ================================================
+            # CHECK DUPLICATE REFERENCE
+            # ================================================
 
-        if receipt_reference:
+            duplicate = None
 
-            duplicate = connection.execute(
+            if receipt_reference:
+
+                duplicate = connection.execute(
+                    """
+                    SELECT id
+                    FROM payments
+                    WHERE receipt_reference = ?
+                    """,
+                    (receipt_reference,)
+                ).fetchone()
+
+            # ================================================
+            # FINAL STATUS
+            # ================================================
+
+            if duplicate:
+
+                status = "Flagged"
+
+                verification_note = (
+                    "Possible duplicate receipt reference. "
+                    + verification_note
+                )
+
+            elif ai_verification == "Review":
+
+                status = "Review"
+
+            elif ai_verification == "Flagged":
+
+                status = "Flagged"
+
+            else:
+
+                # AI/OCR cannot approve payments.
+                # Even an AI result of Verified requires admin approval.
+                status = "Pending"
+
+            # ================================================
+            # SAVE PAYMENT
+            # ================================================
+
+            connection.execute(
                 """
-                SELECT id
-                FROM payments
-                WHERE receipt_reference = ?
+                INSERT INTO payments (
+                    student_id,
+                    amount,
+                    purpose,
+                    receipt_reference,
+                    receipt_file,
+                    status,
+                    verification_note,
+                    ocr_text,
+                    ocr_amount,
+                    ocr_date,
+                    ocr_reference,
+                    ocr_sender,
+                    ocr_recipient,
+                    ocr_narration,
+                    ai_verification,
+                    ai_verification_note
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (receipt_reference,)
-            ).fetchone()
-
-        # ================================================
-        # FINAL STATUS
-        # ================================================
-
-        if duplicate:
-
-            status = "Flagged"
-
-            verification_note = (
-                "Possible duplicate receipt reference. "
-                + verification_note
+                (
+                    student["id"],
+                    amount_value,
+                    purpose,
+                    receipt_reference,
+                    receipt_filename,
+                    status,
+                    verification_note,
+                    ocr_text,
+                    ocr_fields["ocr_amount"],
+                    ocr_fields["ocr_date"],
+                    ocr_fields["ocr_reference"],
+                    ocr_fields["ocr_sender"],
+                    ocr_fields["ocr_recipient"],
+                    ocr_fields["ocr_narration"],
+                    ai_verification,
+                    verification_note
+                )
             )
 
-        elif ai_verification == "Review":
+            commit_started = True
+            connection.commit()
+            commit_completed = True
 
-            status = "Review"
-
-        elif ai_verification == "Flagged":
-
-            status = "Flagged"
-
-        else:
-
-            # AI/OCR cannot approve payments.
-            # Even an AI result of Verified requires admin approval.
-            status = "Pending"
-
-        # ================================================
-        # SAVE PAYMENT
-        # ================================================
-
-        connection.execute(
-            """
-            INSERT INTO payments (
-                student_id,
-                amount,
-                purpose,
-                receipt_reference,
-                receipt_file,
-                status,
-                verification_note,
-                ocr_text,
-                ocr_amount,
-                ocr_date,
-                ocr_reference,
-                ocr_sender,
-                ocr_recipient,
-                ocr_narration,
-                ai_verification,
-                ai_verification_note
+        except Exception:
+            app.logger.exception(
+                "Student payment receipt submission failed."
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                student["id"],
-                amount_value,
-                purpose,
-                receipt_reference,
-                receipt_filename,
-                status,
-                verification_note,
-                ocr_text,
-                ocr_fields["ocr_amount"],
-                ocr_fields["ocr_date"],
-                ocr_fields["ocr_reference"],
-                ocr_fields["ocr_sender"],
-                ocr_fields["ocr_recipient"],
-                ocr_fields["ocr_narration"],
-                ai_verification,
-                verification_note
-            )
-        )
 
-        connection.commit()
-        connection.close()
+            if not commit_completed:
+                try:
+                    connection.rollback()
+                except Exception:
+                    app.logger.exception(
+                        "Payment submission rollback failed."
+                    )
+
+            try:
+                connection.close()
+            except Exception:
+                app.logger.exception(
+                    "Payment database connection cleanup failed."
+                )
+
+            try:
+                if os.path.exists(receipt_path):
+                    os.remove(receipt_path)
+            except OSError:
+                app.logger.exception(
+                    "Temporary receipt cleanup failed."
+                )
+
+            if commit_started:
+                error_message = (
+                    "We could not confirm whether your submission was saved. "
+                    "Please do not submit again yet. Contact your class "
+                    "representative to check your payment history."
+                )
+            else:
+                error_message = (
+                    "Your upload could not be completed. "
+                    "Please try again."
+                )
+
+            return render_template(
+                "student_payment.html",
+                purposes=purposes,
+                error_message=error_message
+            )
+
+        try:
+            connection.close()
+        except Exception:
+            app.logger.exception(
+                "Payment connection cleanup failed after commit."
+            )
+
+        try:
+            if os.path.exists(receipt_path):
+                os.remove(receipt_path)
+        except OSError:
+            app.logger.exception(
+                "Temporary receipt cleanup failed after commit."
+            )
 
         return render_template("student_success.html")
+
+
 
     connection.close()
 
