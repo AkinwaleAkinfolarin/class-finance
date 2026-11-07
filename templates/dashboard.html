@@ -1163,6 +1163,8 @@ function askAI() {
             if (
                 data.export_manual_excel_url ||
                 data.export_manual_pdf_url ||
+                data.export_outstanding_excel_url ||
+                data.export_outstanding_pdf_url ||
                 data.export_financial_excel_url ||
                 data.export_financial_pdf_url
             ) {
@@ -1192,6 +1194,34 @@ function askAI() {
                                     download
                                 >
                                     📄 Download PDF
+                                </a>
+                            `
+                            : ""
+                        }
+
+                        ${
+                            data.export_outstanding_excel_url
+                            ? `
+                                <a
+                                    href="${data.export_outstanding_excel_url}"
+                                    class="ai-export-button"
+                                    download
+                                >
+                                    📊 Outstanding Students Excel
+                                </a>
+                            `
+                            : ""
+                        }
+
+                        ${
+                            data.export_outstanding_pdf_url
+                            ? `
+                                <a
+                                    href="${data.export_outstanding_pdf_url}"
+                                    class="ai-export-button"
+                                    download
+                                >
+                                    📄 Outstanding Students PDF
                                 </a>
                             `
                             : ""

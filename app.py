@@ -12,6 +12,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import get_connection, initialize_database
+import ai_reports
 from PIL import Image
 import pytesseract
 import os
@@ -89,39 +90,19 @@ def get_finance_summary():
 
 
 def generate_manual_purchase_list(purpose):
-    connection = get_connection()
+    """Return all Active students with a Verified payment for a purpose."""
 
-    students = connection.execute(
-        """
-        SELECT
-            s.matric_number,
-            s.full_name,
-            COALESCE(SUM(
-                CASE
-                    WHEN p.status = 'Verified'
-                    AND UPPER(TRIM(p.purpose)) = UPPER(TRIM(?))
-                    THEN p.amount
-                    ELSE 0
-                END
-            ), 0) AS verified_paid
-        FROM students s
-        LEFT JOIN payments p
-            ON p.student_id = s.id
-        GROUP BY s.id, s.matric_number, s.full_name
-        HAVING COALESCE(SUM(
-            CASE
-                WHEN p.status = 'Verified'
-                AND UPPER(TRIM(p.purpose)) = UPPER(TRIM(?))
-                THEN p.amount
-                ELSE 0
-            END
-        ), 0) > 0
-        ORDER BY s.full_name
-        """,
-        (purpose, purpose)
-    ).fetchall()
+    purpose_result = ai_reports.resolve_payment_purpose(purpose)
 
-    connection.close()
+    if purpose_result["status"] != "matched":
+        return []
+
+    report = ai_reports.get_purpose_payment_report(
+        purpose_result["purpose"]["id"]
+    )
+
+    if not report:
+        return []
 
     return [
         {
@@ -129,184 +110,271 @@ def generate_manual_purchase_list(purpose):
             "full_name": student["full_name"],
             "verified_paid": float(student["verified_paid"] or 0)
         }
-        for student in students
+        for student in report["verified_payers"]
     ]
+
+
 def ask_finance_ai(question):
-    summary = get_finance_summary()
-    connection = get_connection()
+    """Build accurate, read-only finance reports from database records."""
 
-    purposes = connection.execute(
-        """
-        SELECT name, expected_amount
-        FROM payment_purposes
-        WHERE status = 'Active'
+    question_lower = question.casefold()
 
-        UNION
+    def money(value):
+        return f"₦{float(value or 0):,.2f}"
 
-        SELECT DISTINCT purpose AS name, CAST(NULL AS DOUBLE PRECISION) AS expected_amount
-        FROM payments
-        WHERE purpose IS NOT NULL
-          AND TRIM(purpose) != ''
+    def make_table(headers, rows):
+        output = ["[TABLE]", " | ".join(headers)]
 
-        ORDER BY name
-        """
-    ).fetchall()
-    student_rows = connection.execute(
-        """
-        SELECT
-            s.matric_number,
-            s.full_name,
-            COALESCE(SUM(
-                CASE
-                    WHEN p.status = 'Verified'
-                    THEN p.amount
-                    ELSE 0
-                END
-            ), 0) AS paid
-        FROM students s
-        LEFT JOIN payments p
-            ON p.student_id = s.id
-        GROUP BY s.id, s.matric_number, s.full_name
-        ORDER BY s.full_name
-        """
-    ).fetchall()
+        for row in rows:
+            output.append(" | ".join(str(value) for value in row))
 
-    connection.close()
+        output.append("[/TABLE]")
+        return "\n".join(output)
 
-    student_context = "\n".join(
-        f"- {student['matric_number']} | {student['full_name']} | "
-        f"Verified paid: ₦{float(student['paid'] or 0):,.2f}"
-        for student in student_rows
+    # -----------------------------------------------------
+    # INDIVIDUAL STUDENT PAYMENT HISTORY
+    # -----------------------------------------------------
+    history_words = (
+        "payment history",
+        "payment record",
+        "payment records",
+        "history of",
+        "what has",
+        "what did",
+        "payments made by",
     )
 
-    question_lower = question.lower()
-    selected_purpose = None
-    
-    for purpose in purposes:
-        purpose_name = purpose["name"]
-        if purpose_name.lower() in question_lower:
-            selected_purpose = purpose_name
-            break
+    if any(word in question_lower for word in history_words):
+        match = ai_reports.find_student_in_question(question)
 
-    if not selected_purpose and (
-        "manual" in question_lower
-        or "purchase list" in question_lower
-        or "manual purchase" in question_lower
-    ):
-        for purpose in purposes:
-            purpose_name = purpose["name"]
-            if "manual" in purpose_name.lower():
-                selected_purpose = purpose_name
-                break
-    if selected_purpose:
-        selected_expected_amount = next(
-            (
-                float(p["expected_amount"])
-                for p in purposes
-                if p["name"].lower() == selected_purpose.lower()
-                and p["expected_amount"] is not None
-            ),
-            None
+        if match["status"] == "ambiguous":
+            return (
+                "I found multiple matching students. Please use the "
+                "student's exact matric number to identify the correct record.\n\n"
+                + make_table(
+                    ["Matric Number", "Student Name"],
+                    [
+                        [s["matric_number"], s["full_name"]]
+                        for s in match["students"]
+                    ]
+                )
+            )
+
+        if match["status"] == "not_found":
+            return (
+                "I couldn't identify an Active student from that question. "
+                "Please include the student's exact matric number."
+            )
+
+        history = ai_reports.get_student_payment_history(
+            match["student"]["id"]
         )
 
-        payment_list = generate_manual_purchase_list(selected_purpose)
-        selected_collected = sum(
-            student["verified_paid"]
-            for student in payment_list
-        )
-        expected_fee_display = (
-            f"₦{selected_expected_amount:,.2f}"
-            if selected_expected_amount is not None
-            else "Not configured"
-        )
-        expected_total = (
-            selected_expected_amount * summary["total_students"]
-            if selected_expected_amount is not None
-            else None
+        if not history:
+            return "The student's payment history could not be retrieved."
+
+        student = history["student"]
+        records = history["payments"]
+
+        answer = (
+            f"## Payment History\n\n"
+            f"**Student:** {student['full_name']}\n\n"
+            f"**Matric Number:** {student['matric_number']}\n\n"
+            f"**Payment records:** {history['payment_count']}\n\n"
+            f"**Verified records:** {history['verified_count']}\n\n"
         )
 
-        outstanding = (
-            max(expected_total - selected_collected, 0)
-            if expected_total is not None
-            else None
-        )
-
-        payment_context = f"""
-Purpose: {selected_purpose}
-Expected fee per student: {expected_fee_display}
-Total students: {summary["total_students"]}
-Expected total: {
-    f"₦{expected_total:,.2f}"
-    if expected_total is not None
-    else "Not configured"
-}
-Verified collected for this purpose: ₦{selected_collected:,.2f}
-Outstanding: {
-    f"₦{outstanding:,.2f}"
-    if outstanding is not None
-    else "Not calculable"
-}
-
-Verified payments for this purpose:
-"""
-        if payment_list:
-            payment_context += "\n".join(
-                f"- {student['matric_number']} | {student['full_name']} | "
-                f"Verified payment: ₦{student['verified_paid']:,.2f}"
-                for student in payment_list
+        if records:
+            answer += make_table(
+                [
+                    "S/N",
+                    "Payment Purpose",
+                    "Amount",
+                    "Date",
+                    "Status",
+                    "Receipt Reference",
+                ],
+                [
+                    [
+                        index,
+                        item["recognised_purpose"] or item["recorded_purpose"] or "Not specified",
+                        money(item["amount"]),
+                        item["payment_date"],
+                        item["status"],
+                        item["receipt_reference"] or "—",
+                    ]
+                    for index, item in enumerate(records, start=1)
+                ]
             )
         else:
-            payment_context += (
-                f"\nNo verified payments recorded for {selected_purpose}."
-            )
-    else:
-        payment_context = "No specific payment purpose was identified."
-    context = f"""
-Class Finance database summary:
-- Total students: {summary["total_students"]}
-- Total payments recorded: {summary["total_payments"]}
-- Verified amount collected: ₦{summary["verified_amount"]:,.2f}
-- Pending/review amount: ₦{summary["pending_amount"]:,.2f}
-- Flagged amount: ₦{summary["flagged_amount"]:,.2f}
+            answer += "No payment records were found for this student."
 
-Selected payment purpose:
-{selected_purpose or "None"}
+        return answer
 
-Payment records:
-{payment_context}
-
-Student payment status:
-{student_context if not selected_purpose else "Not included because a specific payment purpose was selected."}
-"""
-    response = groq_client.chat.completions.create(
-        model="openai/gpt-oss-120b",
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are the Class Finance AI Assistant. "
-                    "Use only the database information provided. "
-                    "Whenever you present tabular data, wrap the table between "
-                    "[TABLE] and [/TABLE]. "
-                    "Inside the table, put each row on its own line and separate columns "
-                    "with the | character. "
-                    "The first line must contain the column headings. "
-                    "Never output table rows as separate plain-text lines outside the "
-                    "[TABLE] and [/TABLE] markers. "
-                    "Keep answers clear and concise. "
-                    "Do not invent or estimate financial figures. "
-                    "Only calculate outstanding amounts when an expected fee is explicitly "
-                    "available in the database."
-)
-            },
-            {
-                "role": "user",
-                "content": context + "\n\nQuestion: " + question
-            }
-        ]
+    # -----------------------------------------------------
+    # PAYMENT STATUS SUMMARY
+    # -----------------------------------------------------
+    status_words = (
+        "payment status",
+        "status summary",
+        "pending payments",
+        "review payments",
+        "flagged payments",
+        "voided payments",
+        "verified payments",
+        "all payment statuses",
     )
 
-    return response.choices[0].message.content
+    if any(word in question_lower for word in status_words):
+        statuses = ai_reports.get_payment_status_summary()
+
+        rows = [
+            [
+                status,
+                statuses[status]["payment_count"],
+                money(statuses[status]["total_amount"]),
+            ]
+            for status in ai_reports.PAYMENT_STATUSES
+        ]
+
+        total_count = sum(
+            item["payment_count"] for item in statuses.values()
+        )
+        total_amount = sum(
+            item["total_amount"] for item in statuses.values()
+        )
+
+        return (
+            "## Payment Status Summary\n\n"
+            + make_table(
+                ["Status", "Number of Records", "Total Amount"],
+                rows
+            )
+            + f"\n\n**Total records:** {total_count}"
+            + f"\n\n**Total submitted amount:** {money(total_amount)}"
+            + "\n\nOnly Verified payments count as collected funds."
+        )
+
+    # -----------------------------------------------------
+    # PAYMENT PURPOSE REPORT
+    # -----------------------------------------------------
+    purpose_result = ai_reports.resolve_payment_purpose(question)
+
+    if purpose_result["status"] == "ambiguous":
+        return (
+            "Your question matches more than one payment purpose. "
+            "Please specify which one you mean.\n\n"
+            + make_table(
+                ["Available Payment Purpose"],
+                [[item["name"]] for item in purpose_result["purposes"]]
+            )
+        )
+
+    if purpose_result["status"] == "matched":
+        purpose = purpose_result["purpose"]
+        report = ai_reports.get_purpose_payment_report(purpose["id"])
+
+        if not report:
+            return "I couldn't retrieve the report for that payment purpose."
+
+        answer = (
+            f"## {report['purpose']} — Payment Report\n\n"
+            f"**Expected fee per student:** {money(report['expected_amount_per_student'])}\n\n"
+            f"**Active students:** {report['active_students']}\n\n"
+            f"**Expected total:** {money(report['expected_total'])}\n\n"
+            f"**Verified collected:** {money(report['verified_collected'])}\n\n"
+            f"**Outstanding balance:** {money(report['outstanding_total'])}\n\n"
+            f"**Fully paid:** {report['paid_count']}\n\n"
+            f"**Outstanding:** {report['outstanding_count']}\n\n"
+            f"**Partially paid:** {report['partial_count']}\n\n"
+        )
+
+        if any(
+            word in question_lower
+            for word in ("outstanding", "owe", "owing", "unpaid", "not paid")
+        ):
+            rows = [
+                [
+                    index,
+                    item["matric_number"],
+                    item["full_name"],
+                    money(item["verified_paid"]),
+                    money(item["balance"]),
+                ]
+                for index, item in enumerate(
+                    report["outstanding_students"], start=1
+                )
+            ]
+
+            answer += "**Students with outstanding balances**\n\n"
+
+            answer += make_table(
+                [
+                    "S/N",
+                    "Matric Number",
+                    "Student Name",
+                    "Verified Paid",
+                    "Balance",
+                ],
+                rows
+            )
+
+        elif any(
+            word in question_lower
+            for word in ("who paid", "who has paid", "has paid",
+                         "list paid", "paid students",
+                         "verified payers", "purchase list")
+        ):
+            rows = [
+                [
+                    index,
+                    item["matric_number"],
+                    item["full_name"],
+                    money(item["verified_paid"]),
+                ]
+                for index, item in enumerate(
+                    report["verified_payers"], start=1
+                )
+            ]
+
+            answer += "**Verified payers**\n\n"
+
+            answer += make_table(
+                ["S/N", "Matric Number", "Student Name", "Verified Paid"],
+                rows
+            )
+
+        return answer
+
+    # -----------------------------------------------------
+    # GENERAL FINANCIAL SUMMARY
+    # -----------------------------------------------------
+    summary = get_finance_summary()
+    statuses = ai_reports.get_payment_status_summary()
+
+    active_connection = get_connection()
+
+    try:
+        active_students = active_connection.execute("""
+            SELECT COUNT(*) AS count
+            FROM students
+            WHERE status = 'Active'
+        """).fetchone()["count"]
+    finally:
+        active_connection.close()
+
+    return (
+        "## Class Finance Summary\n\n"
+        f"**Active students:** {active_students}\n\n"
+        f"**Total payment records:** {summary['total_payments']}\n\n"
+        f"**Verified collected:** {money(statuses['Verified']['total_amount'])}\n\n"
+        f"**Pending:** {money(statuses['Pending']['total_amount'])}\n\n"
+        f"**Under review:** {money(statuses['Review']['total_amount'])}\n\n"
+        f"**Flagged:** {money(statuses['Flagged']['total_amount'])}\n\n"
+        f"**Voided:** {money(statuses['Voided']['total_amount'])}\n\n"
+        "Only Verified payments count as collected funds."
+    )
+
 
 def ask_groq(question):
     response = groq_client.chat.completions.create(
@@ -1664,10 +1732,189 @@ def export_manual_pdf(purpose):
         as_attachment=True,
         download_name=filename
     )
+
+
+# =========================================================
+# OUTSTANDING PAYMENT EXPORTS
+# =========================================================
+
+@app.route("/export/outstanding/<path:purpose>")
+def export_outstanding_excel(purpose):
+    if "admin_id" not in session:
+        return {"error": "Unauthorized"}, 401
+
+    resolved = ai_reports.resolve_payment_purpose(purpose)
+
+    if resolved.get("status") != "matched":
+        return {"error": "Payment purpose not found."}, 404
+
+    report = ai_reports.get_purpose_payment_report(
+        resolved["purpose"]["id"]
+    )
+
+    if not report:
+        return {"error": "Payment purpose not found."}, 404
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Outstanding Students"
+
+    sheet.append([
+        "S/N",
+        "Matric Number",
+        "Student Name",
+        "Expected Amount (₦)",
+        "Verified Paid (₦)",
+        "Outstanding Balance (₦)"
+    ])
+
+    for index, student in enumerate(
+        report["outstanding_students"], start=1
+    ):
+        sheet.append([
+            index,
+            student["matric_number"],
+            student["full_name"],
+            student["expected_amount"],
+            student["verified_paid"],
+            student["balance"]
+        ])
+
+    for cell in sheet[1]:
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal="center")
+
+    for column, width in {
+        "A": 8,
+        "B": 20,
+        "C": 32,
+        "D": 22,
+        "E": 20,
+        "F": 26,
+    }.items():
+        sheet.column_dimensions[column].width = width
+
+    filename = "outstanding_students.xlsx"
+    output_path = os.path.join("/tmp", filename)
+    workbook.save(output_path)
+
+    return send_from_directory(
+        "/tmp",
+        filename,
+        as_attachment=True,
+        download_name=filename
+    )
+
+
+@app.route("/export/outstanding/<path:purpose>/pdf")
+def export_outstanding_pdf(purpose):
+    if "admin_id" not in session:
+        return {"error": "Unauthorized"}, 401
+
+    resolved = ai_reports.resolve_payment_purpose(purpose)
+
+    if resolved.get("status") != "matched":
+        return {"error": "Payment purpose not found."}, 404
+
+    report = ai_reports.get_purpose_payment_report(
+        resolved["purpose"]["id"]
+    )
+
+    if not report:
+        return {"error": "Payment purpose not found."}, 404
+
+    filename = "outstanding_students.pdf"
+    output_path = os.path.join("/tmp", filename)
+
+    document = SimpleDocTemplate(
+        output_path,
+        pagesize=A4,
+        rightMargin=24,
+        leftMargin=24,
+        topMargin=30,
+        bottomMargin=30
+    )
+
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(
+        Paragraph(
+            f"Outstanding Students — {report['purpose']}",
+            styles["Title"]
+        )
+    )
+
+    elements.append(Spacer(1, 12))
+
+    elements.append(
+        Paragraph(
+            f"Active students: {report['active_students']} | "
+            f"Outstanding students: {report['outstanding_count']} | "
+            f"Outstanding total: "
+            f"₦{report['outstanding_total']:,.2f}",
+            styles["Normal"]
+        )
+    )
+
+    elements.append(Spacer(1, 12))
+
+    data = [[
+        "S/N",
+        "Matric Number",
+        "Student Name",
+        "Expected (₦)",
+        "Paid (₦)",
+        "Balance (₦)"
+    ]]
+
+    for index, student in enumerate(
+        report["outstanding_students"], start=1
+    ):
+        data.append([
+            str(index),
+            str(student["matric_number"]),
+            str(student["full_name"]),
+            f'{student["expected_amount"]:,.2f}',
+            f'{student["verified_paid"]:,.2f}',
+            f'{student["balance"]:,.2f}'
+        ])
+
+    table = Table(
+        data,
+        colWidths=[30, 85, 125, 75, 75, 75],
+        repeatRows=1
+    )
+
+    table.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1565C0")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("ALIGN", (0, 0), (0, -1), "CENTER"),
+            ("ALIGN", (3, 1), (-1, -1), "RIGHT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("FONTSIZE", (0, 0), (-1, -1), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+            ("TOPPADDING", (0, 0), (-1, 0), 8),
+        ])
+    )
+
+    elements.append(table)
+    document.build(elements)
+
+    return send_from_directory(
+        "/tmp",
+        filename,
+        as_attachment=True,
+        download_name=filename
+    )
+
+
 @app.route('/api/ai', methods=['POST'])
 def chat():
     data = request.get_json(silent=True) or {}
-
     question = data.get("question", "").strip()
 
     if not question:
@@ -1678,53 +1925,54 @@ def chat():
     try:
         answer = ask_finance_ai(question)
 
-        response_data = {
-            "answer": answer
-        }
+        response_data = {"answer": answer}
+        question_lower = question.casefold()
 
-        question_lower = question.lower()
+        purpose_result = ai_reports.resolve_payment_purpose(question)
 
-        if (
-            "manual purchase" in question_lower
-            or "purchase list" in question_lower
-        ):
-            connection = get_connection()
+        if purpose_result.get("status") == "matched":
+            selected_purpose = purpose_result["purpose"]["name"]
 
-            purposes = connection.execute(
-                """
-                SELECT name
-                FROM payment_purposes
-                WHERE status = 'Active'
+            response_data["resolved_purpose"] = selected_purpose
 
-                UNION
+            outstanding_intent = any(
+                phrase in question_lower
+                for phrase in (
+                    "outstanding",
+                    "owe",
+                    "owing",
+                    "unpaid",
+                    "not paid",
+                    "haven't paid",
+                    "have not paid",
+                )
+            )
 
-                SELECT DISTINCT purpose AS name
-                FROM payments
-                WHERE purpose IS NOT NULL
-                  AND TRIM(purpose) != ''
-                """
-            ).fetchall()
+            paid_list_intent = any(
+                phrase in question_lower
+                for phrase in (
+                    "who paid",
+                    "who has paid",
+                    "has paid",
+                    "list paid",
+                    "paid students",
+                    "verified payers",
+                    "purchase list",
+                )
+            )
 
-            connection.close()
+            if outstanding_intent:
+                response_data["export_outstanding_excel_url"] = url_for(
+                    "export_outstanding_excel",
+                    purpose=selected_purpose
+                )
 
-            selected_purpose = None
+                response_data["export_outstanding_pdf_url"] = url_for(
+                    "export_outstanding_pdf",
+                    purpose=selected_purpose
+                )
 
-            for purpose in purposes:
-                purpose_name = purpose["name"]
-
-                if purpose_name.lower() in question_lower:
-                    selected_purpose = purpose_name
-                    break
-
-            if not selected_purpose:
-                for purpose in purposes:
-                    purpose_name = purpose["name"]
-
-                    if "manual" in purpose_name.lower():
-                        selected_purpose = purpose_name
-                        break
-
-            if selected_purpose:
+            elif paid_list_intent:
                 response_data["export_manual_excel_url"] = url_for(
                     "export_manual_excel",
                     purpose=selected_purpose
@@ -1734,12 +1982,18 @@ def chat():
                     "export_manual_pdf",
                     purpose=selected_purpose
                 )
-        if (
-            "financial report" in question_lower
-            or "finance report" in question_lower
-            or "financial summary" in question_lower
-            or "generate report" in question_lower
-        ):
+
+        financial_report_intent = any(
+            phrase in question_lower
+            for phrase in (
+                "financial report",
+                "finance report",
+                "financial summary",
+                "generate report",
+            )
+        )
+
+        if financial_report_intent:
             response_data["export_financial_excel_url"] = url_for(
                 "export_financial_report_excel"
             )
@@ -1747,13 +2001,16 @@ def chat():
             response_data["export_financial_pdf_url"] = url_for(
                 "export_financial_report_pdf"
             )
+
         return jsonify(response_data)
 
-    except Exception as e:
+    except Exception:
         app.logger.exception("AI request failed")
         return jsonify({
-            "error": str(e)
+            "error": "The finance report could not be generated. Please try again."
         }), 500
+
+
 @app.route("/dashboard")
 def home():
 
