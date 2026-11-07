@@ -2893,6 +2893,16 @@ def verify_payment(payment_id):
             )
         )
 
+    if payment["status"] == "Voided":
+        connection.close()
+
+        return redirect(
+            url_for(
+                "finance_dashboard",
+                message="This payment has been voided and cannot be verified."
+            )
+        )
+
     # -----------------------------------------------
     # Mark payment as officially verified
     # -----------------------------------------------

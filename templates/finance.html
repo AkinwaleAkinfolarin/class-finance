@@ -837,6 +837,12 @@
                                     ✅ Verified
                                 </span>
 
+                            {% elif payment["status"] == "Voided" %}
+
+                                <span class="badge badge-warning">
+                                    🚫 Voided — Duplicate Upload
+                                </span>
+
                             {% elif payment["status"] == "Review" %}
 
                                 <span class="badge badge-warning">
@@ -862,7 +868,13 @@
 
                         <td>
 
-                            {% if payment["status"] != "Verified" %}
+                            {% if payment["status"] == "Voided" %}
+
+                                <span class="badge badge-warning">
+                                    🚫 No action — Voided
+                                </span>
+
+                            {% elif payment["status"] != "Verified" %}
 
                                 <form
                                     method="POST"
