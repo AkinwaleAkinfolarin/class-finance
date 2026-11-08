@@ -874,33 +874,63 @@
                                     🚫 No action — Voided
                                 </span>
 
-                            {% elif payment["status"] != "Verified" %}
+                            {% else %}
+
+                                {% if payment["status"] != "Verified" %}
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for(
+                                            'verify_payment',
+                                            payment_id=payment['id']
+                                        ) }}"
+                                        onsubmit="return confirm(
+                                            'Are you sure you want to verify this payment?'
+                                        );"
+                                    >
+                                        <button
+                                            type="submit"
+                                            class="btn btn-primary"
+                                        >
+                                            ✅ Verify Payment
+                                        </button>
+                                    </form>
+
+                                {% else %}
+
+                                    <span class="badge badge-good">
+                                        Verified
+                                    </span>
+
+                                {% endif %}
 
                                 <form
                                     method="POST"
                                     action="{{ url_for(
-                                        'verify_payment',
+                                        'void_payment',
                                         payment_id=payment['id']
                                     ) }}"
                                     onsubmit="return confirm(
-                                        'Are you sure you want to verify this payment?'
+                                        'Void this payment? It will no longer count as received.'
                                     );"
+                                    style="margin-top:8px;"
                                 >
+                                    <input
+                                        type="text"
+                                        name="reason"
+                                        placeholder="Reason for voiding"
+                                        required
+                                        maxlength="500"
+                                        style="width:100%; margin-bottom:6px;"
+                                    >
 
                                     <button
                                         type="submit"
-                                        class="btn btn-primary"
+                                        class="btn btn-danger"
                                     >
-                                        ✅ Verify Payment
+                                        🚫 Void Payment
                                     </button>
-
                                 </form>
-
-                            {% else %}
-
-                                <span class="badge badge-good">
-                                    Verified
-                                </span>
 
                             {% endif %}
 

@@ -3194,6 +3194,95 @@ def verify_payment(payment_id):
         )
     )
 # =========================================================
+# VOID PAYMENT
+# =========================================================
+
+@app.route(
+    "/payments/<int:payment_id>/void",
+    methods=["POST"]
+)
+def void_payment(payment_id):
+
+    access = admin_required()
+
+    if access:
+        return access
+
+    reason = request.form.get("reason", "").strip()
+
+    if not reason:
+        return redirect(
+            url_for(
+                "finance_dashboard",
+                message="A reason is required to void a payment."
+            )
+        )
+
+    connection = get_connection()
+
+    payment = connection.execute(
+        """
+        SELECT id, status, verification_note
+        FROM payments
+        WHERE id = ?
+        """,
+        (payment_id,)
+    ).fetchone()
+
+    if not payment:
+        connection.close()
+        return redirect(
+            url_for("finance_dashboard", message="Payment not found.")
+        )
+
+    if payment["status"] == "Voided":
+        connection.close()
+        return redirect(
+            url_for("finance_dashboard", message="Payment is already voided.")
+        )
+
+    admin_username = session.get("admin_username", "Admin")
+
+    from datetime import datetime, timezone
+
+    voided_at = datetime.now(timezone.utc).isoformat(
+        timespec="seconds"
+    )
+
+    audit_note = (
+        f"VOIDED by {admin_username} at {voided_at}. "
+        f"Reason: {reason}"
+    )
+
+    previous_note = payment["verification_note"] or ""
+    updated_note = (
+        f"{previous_note}\n{audit_note}"
+        if previous_note else audit_note
+    )
+
+    connection.execute(
+        """
+        UPDATE payments
+        SET status = 'Voided',
+            verification_note = ?
+        WHERE id = ?
+          AND status != 'Voided'
+        """,
+        (updated_note, payment_id)
+    )
+
+    connection.commit()
+    connection.close()
+
+    return redirect(
+        url_for(
+            "finance_dashboard",
+            message="Payment voided successfully. The record was preserved."
+        )
+    )
+
+
+# =========================================================
 # FINANCIAL DASHBOARD
 # =========================================================
 
